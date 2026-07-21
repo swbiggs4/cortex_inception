@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Homeroom — Employee Knowledge Base</title>
+  <title>HomeRoom — Employee Knowledge Base</title>
   <style>
     :root {
       --navy: #0B1E3D;
@@ -262,6 +262,37 @@
     .approver-status { flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
     .approver-status.ok { background: var(--approved-bg); color: var(--approved); }
     .approver-status.pending { background: var(--pending-bg); color: var(--pending); }
+    .approve-btn {
+      display: block; width: 100%;
+      margin-top: 8px; padding: 6px 0;
+      background: var(--navy); color: #fff;
+      border: none; border-radius: 3px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .approve-btn:hover { background: var(--navy-active); }
+    .approve-btn:active { transform: scale(0.98); }
+    .pending-banner {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--pending-bg); border: 1px solid #F59E0B;
+      border-left: 4px solid #F59E0B;
+      padding: 14px 16px; margin-bottom: 24px; border-radius: 0 4px 4px 0;
+    }
+    .pending-banner-icon { font-size: 18px; line-height: 1; flex-shrink: 0; }
+    .pending-banner-body { font-size: 13px; color: var(--text-body); }
+    .pending-banner-body strong { color: var(--pending); }
+    .audit-new-entry .audit-dot { animation: pulse-green 1.2s ease 2; }
+    @keyframes pulse-green {
+      0%,100% { box-shadow: none; }
+      50% { box-shadow: 0 0 0 4px rgba(15,107,59,0.25); }
+    }
+    .audit-live-tag {
+      display: inline-block; margin-left: 6px;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.06em;
+      background: var(--approved); color: #fff;
+      padding: 1px 5px; border-radius: 2px; vertical-align: middle;
+      text-transform: uppercase;
+    }
 
     .audit-trail { position: relative; }
     .audit-item { display: flex; gap: 10px; padding-bottom: 16px; position: relative; }
@@ -333,7 +364,7 @@
       <rect x="2" y="12" width="8" height="8" rx="1.5" fill="#5B9FF5" opacity="0.5"/>
       <rect x="12" y="12" width="8" height="8" rx="1.5" fill="#5B9FF5" opacity="0.3"/>
     </svg>
-    Homeroom
+    HomeRoom
   </a>
   <div class="topbar-divider"></div>
   <div class="topbar-section">First National Bank — Employee Knowledge Base</div>
@@ -452,7 +483,7 @@
       <div class="breadcrumb"><span>Onboarding</span> › BSA / AML Compliance Training</div>
       <div class="article-header">
         <div class="article-meta">
-          <span class="badge badge-approved"><span class="badge-dot"></span>Approved</span>
+          <span class="badge badge-pending"><span class="badge-dot"></span>Pending Legal Sign-Off</span>
           <span class="badge badge-all">All Staff — Required Annual Training</span>
           <span class="version-tag">v3.1</span>
         </div>
@@ -460,6 +491,12 @@
         <div class="article-subtitle">Effective March 15, 2026 &nbsp;·&nbsp; Mandatory completion within 30 days of hire &nbsp;·&nbsp; Owned by BSA Officer</div>
       </div>
       <div class="article-body">
+        <div class="pending-banner" id="pending-banner-1">
+          <div class="pending-banner-icon">⏳</div>
+          <div class="pending-banner-body">
+            <strong>Action required — Awaiting legal sign-off.</strong> This policy has been approved by the BSA Officer and Chief Compliance Officer. It is pending final review from <strong>A. Torres (General Counsel)</strong>. Use the Approval Chain in the right panel to complete sign-off.
+          </div>
+        </div>
         <div class="callout"><strong>Mandatory Training.</strong> All employees must complete the BSA/AML training module in the LMS within 30 days of hire and annually thereafter. Non-completion triggers a compliance alert to your manager and the BSA Officer.</div>
         <p>The Bank Secrecy Act (BSA) requires First National Bank to assist government agencies in detecting and preventing money laundering.<span class="cite">1</span> Every employee, regardless of role, plays a part in our BSA/AML compliance program.</p>
         <h2>1. Know Your Customer (KYC) Requirements</h2>
@@ -626,14 +663,15 @@
       approvers: [
         { initials: 'PW', name: 'P. Williams', role: 'BSA Officer', date: 'Mar 15, 2026', color: '#B45309', ok: true },
         { initials: 'MC', name: 'M. Chen', role: 'Chief Compliance Officer', date: 'Mar 12, 2026', color: '#1D5FA8', ok: true },
-        { initials: 'AT', name: 'A. Torres', role: 'General Counsel', date: 'Mar 9, 2026', color: '#0F6B3B', ok: true }
+        { initials: 'AT', name: 'A. Torres', role: 'General Counsel', date: 'Awaiting approval', color: '#0F6B3B', ok: false }
       ],
       audit: [
-        { type: 'approved', action: '<strong>P. Williams</strong> approved and published v3.1', time: '2026-03-15 08:52 EST' },
+        { type: 'created', action: 'Legal sign-off requested from <strong>A. Torres</strong> — awaiting review', time: '2026-03-16 10:15 EST', isNew: true },
+        { type: 'approved', action: '<strong>M. Chen</strong> approved v3.1 (compliance sign-off)', time: '2026-03-15 08:52 EST' },
+        { type: 'approved', action: '<strong>P. Williams</strong> approved and submitted v3.1 for sign-off', time: '2026-03-12 14:30 EST' },
         { type: 'edited', action: '<strong>P. Williams</strong> updated SAR filing thresholds table', time: '2026-03-10 15:30 EST' },
         { type: 'edited', action: '<strong>A. Torres</strong> incorporated AMLA 2020 amendments', time: '2026-03-04 09:17 EST' },
-        { type: 'created', action: '<strong>P. Williams</strong> initiated annual policy review cycle', time: '2026-02-18 11:00 EST' },
-        { type: 'approved', action: '<strong>M. Chen</strong> approved v3.0', time: '2025-03-14 10:00 EST' }
+        { type: 'created', action: '<strong>P. Williams</strong> initiated annual policy review cycle', time: '2026-02-18 11:00 EST' }
       ],
       perms: [
         { group: 'All Employees', level: 'View', cls: 'perm-view' },
@@ -694,58 +732,116 @@
 
   function renderRail(idx) {
     const g = governance[idx];
-    const approversHTML = g.approvers.map(a => `
-      <div class="approver">
-        <div class="approver-avatar" style="background:${a.color}">${a.initials}</div>
-        <div class="approver-info">
-          <div class="approver-name">${a.name}</div>
-          <div class="approver-role">${a.role}</div>
-          <div class="approver-date">${a.date}</div>
-        </div>
-        <div class="approver-status ${a.ok ? 'ok' : 'pending'}">${a.ok ? 'Approved' : 'Pending'}</div>
-      </div>`).join('');
+    const allApproved = g.approvers.every(function(a) { return a.ok; });
 
-    const auditHTML = g.audit.map(a => `
-      <div class="audit-item">
-        <div class="audit-dot ${a.type}">${icons[a.type]}</div>
-        <div class="audit-content">
-          <div class="audit-action">${a.action}</div>
-          <div class="audit-time">${a.time}</div>
-        </div>
-      </div>`).join('');
+    const approversHTML = g.approvers.map(function(a, ai) {
+      return '<div class="approver" id="approver-' + idx + '-' + ai + '">' +
+        '<div class="approver-avatar" style="background:' + a.color + '">' + a.initials + '</div>' +
+        '<div class="approver-info">' +
+          '<div class="approver-name">' + a.name + '</div>' +
+          '<div class="approver-role">' + a.role + '</div>' +
+          '<div class="approver-date">' + a.date + '</div>' +
+          (!a.ok ? '<button class="approve-btn" onclick="approvePending(' + idx + ',' + ai + ')">✓ Approve — sign off as A. Torres</button>' : '') +
+        '</div>' +
+        '<div class="approver-status ' + (a.ok ? 'ok' : 'pending') + '">' + (a.ok ? 'Approved' : 'Pending') + '</div>' +
+      '</div>';
+    }).join('');
 
-    const permsHTML = g.perms.map(p => `
-      <div class="perm-row">
-        <div class="perm-group">${p.group}</div>
-        <div class="perm-level ${p.cls}">${p.level}</div>
-      </div>`).join('');
+    const auditHTML = g.audit.map(function(a) {
+      return '<div class="audit-item' + (a.isNew ? ' audit-new-entry' : '') + '">' +
+        '<div class="audit-dot ' + a.type + '">' + icons[a.type] + '</div>' +
+        '<div class="audit-content">' +
+          '<div class="audit-action">' + a.action + (a.isNew ? '<span class="audit-live-tag">New</span>' : '') + '</div>' +
+          '<div class="audit-time">' + a.time + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
 
-    document.getElementById('rail').innerHTML = `
-      <div class="rail-section">
-        <div class="rail-label">Document Status</div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <span class="badge badge-approved"><span class="badge-dot"></span>Approved &amp; Published</span>
-          <span class="version-tag">${g.version}</span>
-        </div>
-        <div style="font-size:12px;color:var(--text-muted);">Last updated ${g.updated}</div>
-      </div>
-      <div class="rail-section">
-        <div class="rail-label">Approval Chain</div>
-        <div class="approval-chain">${approversHTML}</div>
-      </div>
-      <div class="rail-section">
-        <div class="rail-label">Audit Trail</div>
-        <div class="audit-trail">${auditHTML}</div>
-      </div>
-      <div class="rail-section">
-        <div class="rail-label">Access Permissions</div>
-        ${permsHTML}
-      </div>`;
+    const permsHTML = g.perms.map(function(p) {
+      return '<div class="perm-row">' +
+        '<div class="perm-group">' + p.group + '</div>' +
+        '<div class="perm-level ' + p.cls + '">' + p.level + '</div>' +
+      '</div>';
+    }).join('');
+
+    const newCount = g.audit.filter(function(a) { return a.isNew; }).length;
+    const auditCountTag = newCount > 0
+      ? '<span style="margin-left:4px;background:var(--pending-bg);color:var(--pending);font-size:9px;font-weight:800;padding:1px 5px;border-radius:2px;">' + newCount + ' pending</span>'
+      : '';
+
+    const statusBadge = allApproved
+      ? '<span class="badge badge-approved"><span class="badge-dot"></span>Approved &amp; Published</span>'
+      : '<span class="badge badge-pending"><span class="badge-dot"></span>Pending Legal Sign-Off</span>';
+
+    document.getElementById('rail').innerHTML =
+      '<div class="rail-section">' +
+        '<div class="rail-label">Document Status</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">' +
+          statusBadge +
+          '<span class="version-tag">' + g.version + '</span>' +
+        '</div>' +
+        '<div style="font-size:12px;color:var(--text-muted);">Last updated ' + g.updated + '</div>' +
+      '</div>' +
+      '<div class="rail-section">' +
+        '<div class="rail-label">Approval Chain</div>' +
+        '<div class="approval-chain">' + approversHTML + '</div>' +
+      '</div>' +
+      '<div class="rail-section">' +
+        '<div class="rail-label">Audit Trail' + auditCountTag + '</div>' +
+        '<div class="audit-trail">' + auditHTML + '</div>' +
+      '</div>' +
+      '<div class="rail-section">' +
+        '<div class="rail-label">Access Permissions</div>' +
+        permsHTML +
+      '</div>';
+  }
+
+  function approvePending(pageIdx, approverIdx) {
+    var g = governance[pageIdx];
+    var approver = g.approvers[approverIdx];
+    var now = new Date();
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var dateStr = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+    var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+    var tsStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) +
+                ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ' EST';
+
+    approver.ok = true;
+    approver.date = dateStr;
+
+    // Remove the "awaiting review" pending entry
+    g.audit = g.audit.filter(function(a) { return !a.isNew; });
+
+    // Add the live approval entry at top
+    g.audit.unshift({
+      type: 'approved',
+      action: '<strong>' + approver.name + '</strong> approved — legal sign-off complete',
+      time: tsStr,
+      isNew: true
+    });
+
+    renderRail(pageIdx);
+
+    // If all approvers are now signed off, update the page badge and remove the pending banner
+    var allDone = g.approvers.every(function(a) { return a.ok; });
+    if (allDone) {
+      var metaBadge = document.querySelector('#page-' + pageIdx + ' .article-meta .badge');
+      if (metaBadge && metaBadge.classList.contains('badge-pending')) {
+        metaBadge.className = 'badge badge-approved';
+        metaBadge.innerHTML = '<span class="badge-dot"></span>Approved &amp; Published';
+      }
+      var banner = document.getElementById('pending-banner-' + pageIdx);
+      if (banner) {
+        banner.style.transition = 'opacity 0.4s';
+        banner.style.opacity = '0';
+        setTimeout(function() { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 400);
+      }
+    }
   }
 
   function showPage(idx) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.sidebar-item[data-page]').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.sidebar-item[data-page]').forEach(function(i) { i.classList.remove('active'); });
     document.getElementById('page-' + idx).classList.add('active');
     document.querySelector('[data-page="' + idx + '"]').classList.add('active');
     renderRail(idx);
