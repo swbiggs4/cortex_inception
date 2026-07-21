@@ -786,13 +786,14 @@ Robert Chen is overdue for post-op wound check. Nursing team to confirm appointm
     const patterns = [
       { label: "Patient Name", regex: /(Patient Name:\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g, token: "$1[REDACTED: PATIENT_NAME]" },
       { label: "Name", regex: /(^Name:\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gm, token: "$1[REDACTED: PATIENT_NAME]" },
+      { label: "Patient Inline Name", regex: /\b(Patient\s+)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/g, token: "$1[REDACTED: NAME]" },
       { label: "DOB", regex: /\b(?:DOB:\s*)?\d{2}[\/-]\d{2}[\/-]\d{4}\b/g, token: "[REDACTED: DOB]" },
       { label: "MRN", regex: /\b(?:MRN|Medical Record Number):?\s*\d{6,10}\b/g, token: "[REDACTED: MRN]" },
       { label: "SSN", regex: /\b\d{3}-\d{2}-\d{4}\b/g, token: "[REDACTED: SSN]" },
       { label: "Phone", regex: /(?:\(\d{3}\)\s*|\b\d{3}-)\d{3}-\d{4}\b/g, token: "[REDACTED: PHONE]" },
       { label: "Email", regex: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, token: "[REDACTED: EMAIL]" },
       { label: "Address", regex: /\b\d{1,5}\s+[A-Za-z0-9.\- ]+(?:Rd|Road|St|Street|Ave|Avenue|Blvd|Lane|Ln|Drive|Dr),\s*[A-Za-z .'-]+,\s*[A-Z]{2}\s+\d{5}\b/g, token: "[REDACTED: ADDRESS]" },
-      { label: "Inline Name", regex: /\b(?!Patient Name\b|Medical Record\b|Discharge Planning\b|Care Coordination\b)([A-Z][a-z]+ [A-Z][a-z]+)\b/g, token: "[REDACTED: NAME]" }
+      { label: "Inline Name", regex: /\b(?!Patient\b|Patient Name\b|Medical Record\b|Discharge Planning\b|Care Coordination\b|Clinical Operations\b)([A-Z][a-z]+ [A-Z][a-z]+)\b/g, token: "[REDACTED: NAME]" }
     ];
 
     function setLog(lines) {
