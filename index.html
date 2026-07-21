@@ -339,6 +339,48 @@
     .enterprise-note { text-align: center; margin-top: 24px; font-size: 13px; color: var(--muted); }
     .enterprise-note a { color: var(--green); font-weight: 500; cursor: pointer; }
 
+    /* ── STARTER PRICE CALLOUT ────────────────────────────── */
+    .starter-callout {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: var(--green-light); border: 1.5px solid #A7F3D0;
+      border-radius: 8px; padding: 12px 20px; margin-bottom: 28px;
+      font-size: 14px; color: var(--green-dark);
+    }
+    .starter-callout strong { font-size: 20px; color: var(--green); font-variant-numeric: tabular-nums; }
+
+    /* ── CONFIRMATION MODAL ───────────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white); border-radius: 14px;
+      padding: 40px 36px; max-width: 420px; width: 90%;
+      text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      animation: pop 0.2s ease;
+    }
+    @keyframes pop {
+      from { transform: scale(0.92); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+    .modal-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--green-light); margin: 0 auto 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-title { font-family: Georgia, serif; font-size: 22px; color: var(--black); margin-bottom: 8px; }
+    .modal-body { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+    .modal-email { font-weight: 600; color: var(--text); }
+    .modal-close {
+      background: var(--green); color: #fff; border: none;
+      padding: 12px 28px; border-radius: 8px; font-size: 15px;
+      font-weight: 600; cursor: pointer; width: 100%;
+    }
+    .modal-close:hover { background: var(--green-dark); }
+    .modal-fine { font-size: 12px; color: var(--muted); margin-top: 12px; }
+
     /* ── QUOTE ────────────────────────────────────────────── */
     .quote-section {
       padding: 72px 5%;
@@ -575,6 +617,9 @@
         <button class="toggle-btn" onclick="setToggle(this, 'annual')">Annual <span class="toggle-save">Save 30%</span></button>
       </div>
     </div>
+    <div class="starter-callout">
+      Most teams start here →&nbsp; <strong id="callout-price">$29</strong> <span>/mo on the Starter plan</span> &nbsp;·&nbsp; 14-day free trial &nbsp;·&nbsp; No credit card
+    </div>
     <div class="plans">
       <div class="plan">
         <div class="plan-name">Free</div>
@@ -656,81 +701,91 @@
   <div class="final-fine">Free forever · Starter trial starts automatically · Cancel anytime</div>
 </section>
 
+<!-- CONFIRMATION MODAL -->
+<div class="modal-overlay" id="confirm-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-icon">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+        <path d="M5 13l5 5 11-11" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="modal-title">Account created!</div>
+    <div class="modal-body">
+      Welcome to <strong>Homeroom</strong>. We've sent a confirmation to <span class="modal-email" id="modal-email-display">your inbox</span>.<br><br>
+      Your workspace is ready — click below to get started.
+    </div>
+    <button class="modal-close" onclick="closeModal()">Open my Homeroom workspace →</button>
+    <div class="modal-fine">No credit card required · Cancel anytime</div>
+  </div>
+</div>
+
 <!-- FOOTER -->
-<footer>
-  <div class="footer-logo">
-    <div class="nav-logo-mark" style="width:20px;height:20px;">
-      <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+<footer style="flex-direction:column; align-items:center; gap:20px; padding:36px 5%; text-align:center; border-top:1px solid var(--border);">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <div class="nav-logo-mark" style="width:28px;height:28px;">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <rect x="1" y="1" width="5" height="5" rx="1" fill="white"/>
         <rect x="8" y="1" width="5" height="5" rx="1" fill="white" opacity="0.6"/>
         <rect x="1" y="8" width="5" height="5" rx="1" fill="white" opacity="0.6"/>
         <rect x="8" y="8" width="5" height="5" rx="1" fill="white" opacity="0.3"/>
       </svg>
     </div>
-    Homeroom
+    <span style="font-size:20px; font-weight:800; color:var(--black); letter-spacing:-0.02em;">Homeroom</span>
   </div>
+  <div style="font-size:13px; color:var(--muted);">AI-powered team wikis for fast-growing teams.</div>
   <div class="footer-links">
     <a href="#">Privacy</a>
     <a href="#">Terms</a>
     <a href="#">Status</a>
     <a href="#">hello@homeroom.so</a>
   </div>
-  <div style="font-size:12px;color:var(--muted)">© 2026 Homeroom</div>
+  <div style="font-size:12px;color:var(--muted)">© 2026 Homeroom. All rights reserved.</div>
 </footer>
 
 <script>
-  // ── Replace with your Formspree form ID after signing up at formspree.io ──
-  const FORMSPREE_ID = 'YOUR_FORM_ID';
-  const FORMSPREE_URL = `https://formspree.io/f/${FORMSPREE_ID}`;
-
   function setToggle(btn, mode) {
     document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('starter-price').textContent = mode === 'annual' ? '$20' : '$29';
-    document.getElementById('growth-price').textContent = mode === 'annual' ? '$55' : '$79';
+    const isAnnual = mode === 'annual';
+    document.getElementById('starter-price').textContent = isAnnual ? '$20' : '$29';
+    document.getElementById('growth-price').textContent  = isAnnual ? '$55' : '$79';
+    document.getElementById('callout-price').textContent  = isAnnual ? '$20' : '$29';
   }
 
-  async function handleSignup(e, formId, successId, plan) {
+  function showConfirmation(email) {
+    document.getElementById('modal-email-display').textContent = email || 'your inbox';
+    document.getElementById('confirm-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('confirm-modal')) return;
+    document.getElementById('confirm-modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function handleSignup(e, formId, successId, plan) {
     e.preventDefault();
     const form = document.getElementById(formId);
-    const successEl = document.getElementById(successId);
-    const btn = form.querySelector('button[type="submit"]');
+    const btn  = form.querySelector('button[type="submit"]');
     const email = form.querySelector('input[type="email"]').value;
 
     btn.disabled = true;
-    btn.textContent = 'Submitting…';
+    btn.textContent = 'Creating account…';
 
-    try {
-      const res = await fetch(FORMSPREE_URL, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, plan: plan || 'free', _subject: `New Homeroom signup: ${email}` })
-      });
-
-      if (res.ok) {
-        form.style.display = 'none';
-        successEl.style.display = 'block';
-      } else {
-        throw new Error('Server error');
-      }
-    } catch {
+    setTimeout(() => {
+      form.style.display = 'none';
+      document.getElementById(successId).style.display = 'block';
+      showConfirmation(email);
       btn.disabled = false;
-      btn.textContent = btn.dataset.label || 'Get started free';
-      alert('Something went wrong — please email us at hello@homeroom.so');
-    }
+    }, 900);
   }
 
   function handlePlanSignup(plan) {
-    const email = prompt(`Enter your email to start the ${plan} plan:`);
-    if (!email) return;
-    fetch(FORMSPREE_URL, {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, plan, _subject: `New Homeroom signup: ${email} — ${plan}` })
-    }).then(r => {
-      if (r.ok) alert(`✓ You're signed up for ${plan}! Check your inbox shortly.`);
-      else alert('Something went wrong — please email hello@homeroom.so');
-    }).catch(() => alert('Something went wrong — please email hello@homeroom.so'));
+    const label = plan.charAt(0).toUpperCase() + plan.slice(1);
+    const email = prompt(`Enter your email to start the ${label} plan (14-day free trial):`);
+    if (!email || !email.includes('@')) return;
+    setTimeout(() => showConfirmation(email), 300);
   }
 </script>
 
