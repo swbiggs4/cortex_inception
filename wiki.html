@@ -3,992 +3,930 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HomeRoom — Employee Knowledge Base</title>
+  <title>Homeroom Health | PHI Redaction Demo</title>
+  <meta
+    name="description"
+    content="Interactive PHI-redaction demo showing sensitive identifiers masked in-browser before a governed clinical knowledge page is prepared."
+  />
   <style>
     :root {
-      --navy: #0B1E3D;
-      --accent: #1D5FA8;
-      --accent-light: #E8F0FA;
-      --bg: #EEF2F7;
-      --white: #FFFFFF;
-      --text-head: #0D1B2A;
-      --text-body: #2C3E50;
-      --text-muted: #5A6B80;
-      --border: #C9D4E2;
-      --approved: #0F6B3B;
-      --approved-bg: #E6F4EE;
-      --pending: #92400E;
-      --pending-bg: #FEF3C7;
-      --rejected: #991B1B;
-      --rejected-bg: #FEE2E2;
-      --sidebar-w: 230px;
-      --rail-w: 280px;
+      --ink: #0f172a;
+      --ink-soft: #475569;
+      --line: #d7e2ea;
+      --paper: #f8fafc;
+      --white: #ffffff;
+      --navy: #122033;
+      --teal: #0f766e;
+      --teal-soft: #ccfbf1;
+      --amber: #b45309;
+      --amber-soft: #ffedd5;
+      --rose: #be123c;
+      --rose-soft: #ffe4e6;
+      --sky: #0ea5e9;
+      --sky-soft: #e0f2fe;
+      --shadow: 0 26px 60px rgba(15, 23, 42, 0.12);
+      --radius: 22px;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg); color: var(--text-body);
-      font-size: 14px; line-height: 1.6; min-height: 100vh;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+        linear-gradient(180deg, #f8fbfd 0%, #edf4f7 100%);
+      line-height: 1.58;
     }
 
-    /* ── TOPBAR ── */
-    .topbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      height: 52px; background: var(--navy);
-      display: flex; align-items: center; padding: 0 20px; gap: 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .topbar-logo {
-      display: flex; align-items: center; gap: 10px;
-      color: #fff; font-size: 15px; font-weight: 700;
-      text-decoration: none; flex-shrink: 0; letter-spacing: -0.01em;
-    }
-    .topbar-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.15); }
-    .topbar-section { color: rgba(255,255,255,0.55); font-size: 13px; }
-    .topbar-search {
-      margin-left: auto; background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.15); border-radius: 4px;
-      padding: 5px 12px; color: rgba(255,255,255,0.7); font-size: 13px;
-      width: 220px; outline: none;
-    }
-    .topbar-search::placeholder { color: rgba(255,255,255,0.35); }
-    .topbar-back {
-      color: rgba(255,255,255,0.6); font-size: 12px; text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
-      padding: 4px 10px; transition: all 0.15s;
-    }
-    .topbar-back:hover { background: rgba(255,255,255,0.08); color: #fff; }
-    .topbar-user {
-      display: flex; align-items: center; gap: 8px;
-      color: rgba(255,255,255,0.8); font-size: 13px; cursor: pointer;
-    }
-    .topbar-avatar {
-      width: 28px; height: 28px; border-radius: 50%;
-      background: var(--accent); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700;
+    a { color: inherit; text-decoration: none; }
+
+    .shell {
+      width: min(1280px, calc(100% - 28px));
+      margin: 0 auto;
+      padding-bottom: 30px;
     }
 
-    /* ── NOTIFICATION RIBBON ── */
-    .notif-ribbon {
-      position: fixed; top: 52px; left: var(--sidebar-w); right: 0; z-index: 150;
-      background: #FFFBEB; border-bottom: 1px solid #FCD34D;
-      display: flex; align-items: center; gap: 12px;
-      padding: 9px 24px; font-size: 13px; color: #78350F;
-      transition: all 0.3s;
-    }
-    .notif-ribbon.hidden { display: none; }
-    .notif-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #F59E0B; flex-shrink: 0;
-      animation: dot-pulse 1.6s ease-in-out infinite;
-    }
-    @keyframes dot-pulse {
-      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
-    }
-    .notif-link {
-      font-weight: 700; color: #92400E; cursor: pointer; text-decoration: underline;
-    }
-    .notif-link:hover { color: #78350F; }
-    .notif-dismiss {
-      margin-left: auto; background: none; border: none;
-      color: #B45309; cursor: pointer; font-size: 18px; line-height: 1; padding: 0;
-    }
-
-    /* ── LAYOUT ── */
-    .layout {
+    .nav {
       display: flex;
-      margin-top: 52px;
-      min-height: calc(100vh - 52px);
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 0;
     }
-    .layout.has-ribbon { margin-top: 52px; }
-    .layout.has-ribbon .main,
-    .layout.has-ribbon .rail { top: calc(52px + 38px); }
 
-    /* ── SIDEBAR ── */
-    .sidebar {
-      width: var(--sidebar-w); flex-shrink: 0;
-      background: var(--navy);
-      padding: 20px 0 40px;
-      position: fixed; top: 52px; left: 0; bottom: 0;
-      overflow-y: auto; z-index: 100;
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
-    .sidebar-group-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: rgba(255,255,255,0.3);
-      padding: 0 18px; margin-bottom: 4px; margin-top: 18px;
-    }
-    .sidebar-group-label:first-child { margin-top: 0; }
-    .sidebar-item {
-      display: flex; align-items: flex-start; gap: 9px;
-      padding: 9px 18px; cursor: pointer;
-      color: rgba(255,255,255,0.55); font-size: 13px; line-height: 1.4;
-      border-left: 3px solid transparent; transition: background 0.15s, color 0.15s;
-      user-select: none;
-    }
-    .sidebar-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
-    .sidebar-item.active { background: rgba(255,255,255,0.1); color: #fff; border-left-color: #5B9FF5; }
-    .sidebar-icon { opacity: 0.65; flex-shrink: 0; margin-top: 1px; }
-    .sidebar-item.active .sidebar-icon { opacity: 1; }
-    .sidebar-badge {
-      margin-left: auto; flex-shrink: 0;
-      font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px;
-    }
-    .sidebar-badge.pending { background: #F59E0B; color: #fff; }
-    .sidebar-badge.req { background: #B45309; color: #fff; }
-    .sidebar-badge.log { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
 
-    /* ── MAIN ── */
-    .main {
-      margin-left: var(--sidebar-w);
-      margin-right: var(--rail-w);
-      flex: 1; padding: 32px 40px; min-width: 0;
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--teal), var(--sky));
+      display: grid;
+      place-items: center;
     }
-    .page { display: none; }
-    .page.active { display: block; }
 
-    /* ── BREADCRUMB ── */
-    .breadcrumb {
-      font-size: 12px; color: var(--text-muted);
-      margin-bottom: 20px; display: flex; align-items: center; gap: 6px;
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      color: var(--ink-soft);
+      font-size: 14px;
     }
-    .breadcrumb span { color: var(--accent); cursor: pointer; }
 
-    /* ── ARTICLE ── */
-    .article-header { margin-bottom: 24px; }
-    .article-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-    .badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
-      padding: 3px 9px; border-radius: 3px;
+    .nav-links a:hover { color: var(--ink); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      gap: 20px;
+      align-items: start;
     }
-    .badge-approved { background: var(--approved-bg); color: var(--approved); }
-    .badge-pending  { background: var(--pending-bg); color: var(--pending); }
-    .badge-rejected { background: var(--rejected-bg); color: var(--rejected); }
-    .badge-all      { background: #EFF6FF; color: #1E40AF; }
-    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-    .article-title {
-      font-family: Georgia, serif; font-size: 25px; font-weight: normal;
-      color: var(--text-head); line-height: 1.3; margin-bottom: 5px;
+
+    .main-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 28px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 24px;
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(14, 165, 233, 0.06)),
+        rgba(255,255,255,0.92);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow span {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(36px, 6vw, 56px);
+      line-height: 1.03;
+      letter-spacing: -0.04em;
+      font-weight: 400;
+      margin-bottom: 14px;
       text-wrap: balance;
     }
-    .article-subtitle { font-size: 13px; color: var(--text-muted); }
-    .article-body { max-width: 680px; }
-    .article-body h2 {
-      font-family: Georgia, serif; font-size: 17px; font-weight: normal;
-      color: var(--text-head); margin: 30px 0 10px;
-      padding-bottom: 6px; border-bottom: 1px solid var(--border);
+
+    .hero p {
+      color: var(--ink-soft);
+      font-size: 16px;
+      max-width: 760px;
     }
-    .article-body p { margin-bottom: 13px; }
-    .article-body ul, .article-body ol { padding-left: 20px; margin-bottom: 13px; }
-    .article-body li { margin-bottom: 4px; }
-    .version-tag {
-      display: inline-flex; align-items: center;
-      background: var(--bg); border: 1px solid var(--border);
-      padding: 3px 9px; font-size: 11px; color: var(--text-muted);
-      font-family: monospace;
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
     }
-    .callout {
-      background: #FFFBEB; border-left: 3px solid #F59E0B;
-      padding: 12px 16px; margin: 18px 0; border-radius: 0 4px 4px 0;
+
+    .meta-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .controls {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .controls-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .controls-head h2 {
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .controls-head p {
+      color: var(--ink-soft);
+      font-size: 14px;
+      max-width: 520px;
+    }
+
+    .sample-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      background: var(--white);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: rgba(15, 118, 110, 0.4);
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .editor {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      background: var(--white);
+    }
+
+    .editor-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .editor-head strong {
+      font-size: 14px;
+    }
+
+    .editor-head span {
+      font-size: 12px;
+      color: var(--ink-soft);
+    }
+
+    textarea,
+    .output {
+      width: 100%;
+      min-height: 300px;
+      border: 0;
+      padding: 16px;
+      font: 14px/1.65 "SFMono-Regular", Consolas, monospace;
+      color: var(--ink);
+      background: transparent;
+      resize: vertical;
+    }
+
+    textarea:focus { outline: none; }
+
+    .output {
+      white-space: pre-wrap;
+      background: linear-gradient(180deg, rgba(248,250,252,0.66), rgba(255,255,255,0.88));
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tag-alert {
+      background: var(--rose-soft);
+      color: var(--rose);
+    }
+
+    .tag-safe {
+      background: var(--teal-soft);
+      color: var(--teal);
+    }
+
+    .tag-info {
+      background: var(--sky-soft);
+      color: #0369a1;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 13px 16px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--teal), #115e59);
+      color: var(--white);
+    }
+
+    .btn-secondary {
+      background: var(--white);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      color: var(--ink);
+    }
+
+    .btn[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .status-box {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 16px;
+      background: var(--paper);
+      display: grid;
+      gap: 14px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .metric {
+      border-radius: 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      padding: 14px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+    }
+
+    .metric span {
+      font-size: 12px;
+      color: var(--ink-soft);
+    }
+
+    .log {
+      background: #0f172a;
+      color: #dbeafe;
+      border-radius: 20px;
+      padding: 16px;
+      font: 12px/1.75 "SFMono-Regular", Consolas, monospace;
+      white-space: pre-wrap;
+      min-height: 140px;
+    }
+
+    .wiki-card {
+      padding: 0;
+    }
+
+    .wiki-top {
+      background: var(--navy);
+      color: var(--white);
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .wiki-top strong {
+      font-size: 15px;
+    }
+
+    .wiki-top span {
+      color: rgba(255,255,255,0.72);
+      font-size: 12px;
+    }
+
+    .wiki-body {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .wiki-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge-teal {
+      background: var(--teal-soft);
+      color: var(--teal);
+    }
+
+    .badge-sky {
+      background: var(--sky-soft);
+      color: #0369a1;
+    }
+
+    .badge-amber {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .wiki-title {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      line-height: 1.15;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+    }
+
+    .wiki-sub {
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+
+    .wiki-content {
+      white-space: pre-wrap;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--paper);
+      padding: 16px;
+      min-height: 240px;
+      font-size: 14px;
+      color: #1e293b;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 18px;
+      position: sticky;
+      top: 16px;
+    }
+
+    .side-panel {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 28px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+      padding: 20px;
+    }
+
+    .side-panel h3 {
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 14px;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .list-item {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      padding: 14px;
+    }
+
+    .list-item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .list-item span {
+      color: var(--ink-soft);
       font-size: 13px;
     }
-    .callout strong { color: #92400E; }
-    .callout-blue {
-      background: var(--accent-light); border-left: 3px solid var(--accent);
-      padding: 12px 16px; margin: 18px 0; border-radius: 0 4px 4px 0;
+
+    .audit-entry {
+      border-left: 3px solid transparent;
+      padding: 10px 0 10px 12px;
+      position: relative;
+    }
+
+    .audit-entry::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      position: absolute;
+      left: -6px;
+      top: 15px;
+      background: var(--sky);
+      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
+    }
+
+    .audit-entry strong {
+      display: block;
       font-size: 13px;
+      margin-bottom: 2px;
     }
-    .cite {
-      display: inline-block; font-size: 10px; font-weight: 700;
-      color: var(--accent); background: var(--accent-light);
-      padding: 1px 4px; border-radius: 3px;
-      vertical-align: super; line-height: 1; cursor: default; margin-left: 1px;
-    }
-    .references { margin-top: 40px; padding-top: 20px; border-top: 2px solid var(--border); }
-    .references-title {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;
-    }
-    .ref-item { display: flex; gap: 10px; margin-bottom: 9px; font-size: 12px; }
-    .ref-num { flex-shrink: 0; font-weight: 700; color: var(--accent); font-size: 11px; width: 18px; }
-    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 14px 0; }
-    .data-table th {
-      text-align: left; padding: 7px 12px; font-size: 11px; font-weight: 700;
-      letter-spacing: 0.04em; text-transform: uppercase;
-      color: var(--text-muted); background: var(--bg); border-bottom: 2px solid var(--border);
-    }
-    .data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table-wrap { overflow-x: auto; }
 
-    /* ── APPROVAL ACTION CARD ── */
-    .action-card {
-      border: 2px solid #F59E0B; border-radius: 8px;
-      background: #FFFBEB; margin-bottom: 28px; overflow: hidden;
+    .audit-entry span {
+      font-size: 12px;
+      color: var(--ink-soft);
     }
-    .action-card-header {
-      background: #FEF3C7; padding: 14px 20px;
-      display: flex; align-items: center; gap: 12px;
-      border-bottom: 1px solid #FCD34D;
-    }
-    .action-card-icon { font-size: 20px; flex-shrink: 0; }
-    .action-card-title { font-size: 14px; font-weight: 700; color: #78350F; }
-    .action-card-sub { font-size: 12px; color: #92400E; margin-top: 2px; }
-    .action-card-body { padding: 20px; }
-    .action-meta-row {
-      display: flex; gap: 24px; margin-bottom: 16px; flex-wrap: wrap;
-    }
-    .action-meta-item { font-size: 12px; color: var(--text-body); }
-    .action-meta-item strong { color: var(--text-head); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-    .action-comment {
-      width: 100%; border: 1px solid var(--border); border-radius: 4px;
-      padding: 9px 12px; font-size: 13px; font-family: inherit;
-      color: var(--text-body); resize: vertical; min-height: 72px;
-      outline: none; margin-bottom: 14px; background: #fff;
-    }
-    .action-comment:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,95,168,0.1); }
-    .action-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-    .btn-approve {
-      padding: 10px 22px; border-radius: 5px; border: none; cursor: pointer;
-      font-size: 13px; font-weight: 700; transition: all 0.15s;
-      background: var(--approved); color: #fff;
-    }
-    .btn-approve:hover { background: #0A5530; }
-    .btn-reject {
-      padding: 10px 22px; border-radius: 5px; border: 1.5px solid var(--rejected);
-      cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.15s;
-      background: #fff; color: var(--rejected);
-    }
-    .btn-reject:hover { background: var(--rejected-bg); }
-    .action-card.resolved { border-color: var(--approved); background: var(--approved-bg); }
-    .action-card.resolved .action-card-header { background: #D1FAE5; border-color: #6EE7B7; }
-    .action-card.resolved .action-card-title { color: var(--approved); }
-    .action-card.rejected-card { border-color: var(--rejected); background: var(--rejected-bg); }
-    .action-card.rejected-card .action-card-header { background: #FEE2E2; border-color: #FCA5A5; }
-    .action-card.rejected-card .action-card-title { color: var(--rejected); }
 
-    /* ── GOVERNANCE RAIL ── */
-    .rail {
-      width: var(--rail-w); flex-shrink: 0;
-      position: fixed; top: 52px; right: 0; bottom: 0;
-      background: var(--white); border-left: 1px solid var(--border);
-      overflow-y: auto; padding: 20px 18px; z-index: 100;
+    .disclaimer {
+      font-size: 12px;
+      color: var(--ink-soft);
     }
-    .rail-section { margin-bottom: 26px; }
-    .rail-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--text-muted);
-      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
-    }
-    .rail-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .rail-count {
-      font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 2px;
-      background: var(--pending-bg); color: var(--pending); letter-spacing: 0.04em;
-    }
-    .rail-count.done { background: var(--approved-bg); color: var(--approved); }
 
-    .approval-chain { display: flex; flex-direction: column; gap: 8px; }
-    .approver {
-      display: flex; align-items: flex-start; gap: 9px;
-      padding: 9px 11px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 4px;
-    }
-    .approver-avatar {
-      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 700; color: #fff;
-    }
-    .approver-info { flex: 1; min-width: 0; }
-    .approver-name { font-size: 12px; font-weight: 600; color: var(--text-head); }
-    .approver-role { font-size: 11px; color: var(--text-muted); }
-    .approver-date { font-size: 10px; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
-    .approver-status { flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; margin-top: 2px; }
-    .approver-status.ok  { background: var(--approved-bg); color: var(--approved); }
-    .approver-status.pend { background: var(--pending-bg); color: var(--pending); }
-    .approver-status.rej  { background: var(--rejected-bg); color: var(--rejected); }
+    @media (max-width: 1040px) {
+      .layout,
+      .editor-grid,
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
 
-    .audit-list { display: flex; flex-direction: column; }
-    .audit-item { display: flex; gap: 9px; padding-bottom: 14px; position: relative; }
-    .audit-item::before {
-      content: ''; position: absolute; left: 10px; top: 22px; bottom: 0;
-      width: 1px; background: var(--border);
+      .side-stack {
+        position: static;
+      }
     }
-    .audit-item:last-child::before { display: none; }
-    .audit-dot {
-      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
-      background: var(--bg); border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      position: relative; z-index: 1;
-    }
-    .audit-dot svg { width: 10px; height: 10px; }
-    .audit-dot.approved { background: var(--approved-bg); border-color: var(--approved); }
-    .audit-dot.rejected { background: var(--rejected-bg); border-color: var(--rejected); }
-    .audit-dot.edited   { background: #EFF6FF; border-color: var(--accent); }
-    .audit-dot.created  { background: #F3F4F6; border-color: #9CA3AF; }
-    .audit-dot.pending  { background: var(--pending-bg); border-color: #F59E0B; }
-    .audit-dot.new-entry { animation: pop-in 0.4s ease; }
-    @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    .audit-content { flex: 1; padding-top: 2px; }
-    .audit-action { font-size: 12px; color: var(--text-body); font-weight: 500; }
-    .audit-action strong { color: var(--text-head); }
-    .audit-time { font-size: 10px; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
-    .audit-comment-snippet {
-      font-size: 11px; color: var(--text-muted); font-style: italic;
-      margin-top: 3px; padding-left: 8px; border-left: 2px solid var(--border);
-    }
-    .new-tag {
-      display: inline-block; font-size: 9px; font-weight: 800;
-      background: var(--approved); color: #fff; padding: 1px 4px;
-      border-radius: 2px; margin-left: 4px; vertical-align: middle;
-      letter-spacing: 0.05em;
-    }
-    .new-tag.pend-tag { background: #F59E0B; }
-    .new-tag.rej-tag  { background: var(--rejected); }
 
-    .perm-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px;
-    }
-    .perm-row:last-child { border-bottom: none; }
-    .perm-level { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 2px; }
-    .perm-view { background: #EFF6FF; color: #1E40AF; }
-    .perm-edit { background: #F0FDF4; color: #166534; }
-    .perm-none { background: #F1F5F9; color: #64748B; }
-
-    /* ── ACTIVITY LOG PAGE ── */
-    .log-filters {
-      display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
-    }
-    .log-filter {
-      padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
-      border: 1.5px solid var(--border); cursor: pointer; background: var(--white);
-      color: var(--text-muted); transition: all 0.15s;
-    }
-    .log-filter.active { background: var(--navy); color: #fff; border-color: var(--navy); }
-    .log-entry {
-      display: flex; gap: 14px; padding: 14px 0;
-      border-bottom: 1px solid var(--border); align-items: flex-start;
-    }
-    .log-entry:last-child { border-bottom: none; }
-    .log-ts { font-size: 11px; font-family: monospace; color: var(--text-muted); width: 130px; flex-shrink: 0; padding-top: 2px; }
-    .log-icon { flex-shrink: 0; }
-    .log-icon-dot {
-      width: 28px; height: 28px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; font-size: 13px;
-    }
-    .log-icon-dot.approved { background: var(--approved-bg); }
-    .log-icon-dot.rejected { background: var(--rejected-bg); }
-    .log-icon-dot.edited   { background: #EFF6FF; }
-    .log-icon-dot.created  { background: #F3F4F6; }
-    .log-icon-dot.pending  { background: var(--pending-bg); }
-    .log-body { flex: 1; }
-    .log-actor { font-size: 13px; font-weight: 600; color: var(--text-head); }
-    .log-action-text { font-size: 13px; color: var(--text-body); }
-    .log-doc { font-size: 11px; color: var(--accent); margin-top: 2px; cursor: pointer; }
-    .log-doc:hover { text-decoration: underline; }
-    .log-comment { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 4px; }
-    .log-badge {
-      flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
-    }
-    .log-badge.approved { background: var(--approved-bg); color: var(--approved); }
-    .log-badge.rejected { background: var(--rejected-bg); color: var(--rejected); }
-    .log-badge.pending  { background: var(--pending-bg); color: var(--pending); }
-    .log-badge.edited   { background: #EFF6FF; color: #1E40AF; }
-    .log-badge.created  { background: #F3F4F6; color: #6B7280; }
-
-    @media (max-width: 960px) {
-      .rail { display: none; }
-      .main { margin-right: 0; }
-      .sidebar { display: none; }
-      .main { margin-left: 0; padding: 20px 16px; }
-      .notif-ribbon { left: 0; }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 18px, 1280px); }
+      .nav { flex-wrap: wrap; }
+      .nav-links { width: 100%; justify-content: space-between; }
+      .controls-head,
+      .action-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="shell">
+    <header class="nav">
+      <a class="brand" href="index.html">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect x="1.5" y="1.5" width="6" height="6" rx="1.5" fill="white"/>
+            <rect x="10.5" y="1.5" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+            <rect x="1.5" y="10.5" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+            <rect x="10.5" y="10.5" width="6" height="6" rx="1.5" fill="white" opacity="0.3"/>
+          </svg>
+        </div>
+        <span>Homeroom Health</span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Overview</a>
+        <a href="security.html">Security</a>
+      </nav>
+    </header>
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <a class="topbar-logo" href="index.html">
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <rect x="2" y="2" width="8" height="8" rx="1.5" fill="#5B9FF5"/>
-      <rect x="12" y="2" width="8" height="8" rx="1.5" fill="#5B9FF5" opacity="0.5"/>
-      <rect x="2" y="12" width="8" height="8" rx="1.5" fill="#5B9FF5" opacity="0.5"/>
-      <rect x="12" y="12" width="8" height="8" rx="1.5" fill="#5B9FF5" opacity="0.3"/>
-    </svg>
-    HomeRoom
-  </a>
-  <div class="topbar-divider"></div>
-  <div class="topbar-section">First National Bank — Employee Knowledge Base</div>
-  <input class="topbar-search" type="text" placeholder="Search policies, procedures...">
-  <a class="topbar-back" href="index.html">← Back to site</a>
-  <div class="topbar-user">
-    <div class="topbar-avatar">AT</div>
-    A. Torres
+    <div class="layout">
+      <main class="main-stack">
+        <section class="panel hero">
+          <div class="eyebrow"><span></span>Live PHI redaction demo</div>
+          <h1>Paste a patient note. Watch identifiers get redacted before publish unlocks.</h1>
+          <p>
+            This demo runs locally in the browser. It detects common patient identifiers, masks them with explicit redaction tokens, and blocks the governed wiki preview until the output passes the PHI gate.
+          </p>
+          <div class="hero-meta">
+            <div class="meta-pill">No raw-text handoff step unlocked until redaction completes</div>
+            <div class="meta-pill">Deterministic client-side rules for live review</div>
+            <div class="meta-pill">Governed wiki preview uses sanitized text only</div>
+          </div>
+        </section>
+
+        <section class="panel controls">
+          <div class="controls-head">
+            <div>
+              <h2>Try a seeded healthcare example or paste your own sample</h2>
+              <p>The button below loads realistic identifiers so a skeptical reviewer can verify the site is catching names, DOB, MRN, phone, email, SSN, and addresses.</p>
+            </div>
+          </div>
+
+          <div class="sample-row">
+            <button class="chip" type="button" data-sample="handoff">Load ED handoff note</button>
+            <button class="chip" type="button" data-sample="protocol">Load care coordination note</button>
+            <button class="chip" type="button" id="clear-input">Clear</button>
+          </div>
+
+          <div class="editor-grid">
+            <div class="editor">
+              <div class="editor-head">
+                <strong>Raw pasted input</strong>
+                <span>Unsafe until scan + redact completes</span>
+              </div>
+              <textarea id="source-text" aria-label="Raw source text">Patient Name: Maria Thompson
+DOB: 03/14/1978
+MRN: 84722119
+SSN: 411-82-9831
+Phone: (415) 555-0187
+Email: maria.thompson@example.com
+Address: 2841 Cedar Hill Rd, Oakland, CA 94612
+
+Discharge planning note:
+Maria Thompson was admitted for chest pain observation. Follow-up with cardiology in 7 days. Reinforce medication adherence and provide updated return precautions.</textarea>
+            </div>
+            <div class="editor">
+              <div class="editor-head">
+                <strong>Sanitized output</strong>
+                <span>Only this output can move to the governed page</span>
+              </div>
+              <div class="output" id="redacted-output">Run the PHI redaction step to generate a sanitized version of the note.</div>
+            </div>
+          </div>
+
+          <div class="tag-row" id="detector-tags">
+            <div class="tag tag-alert">PHI gate not yet evaluated</div>
+            <div class="tag tag-info">Detector checks: name fields, DOB, MRN, SSN, phone, email, address</div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-primary" type="button" id="redact-btn">Run PHI redaction</button>
+            <button class="btn btn-secondary" type="button" id="publish-btn" disabled>Publish sanitized preview</button>
+            <div class="disclaimer">Publish remains locked until the detector confirms the sanitized output no longer contains the targeted identifier patterns.</div>
+          </div>
+
+          <div class="status-box">
+            <div class="status-grid">
+              <div class="metric">
+                <strong id="detected-count">0</strong>
+                <span>Identifiers detected</span>
+              </div>
+              <div class="metric">
+                <strong id="redacted-count">0</strong>
+                <span>Tokens inserted</span>
+              </div>
+              <div class="metric">
+                <strong id="gate-status">Blocked</strong>
+                <span>Publish gate</span>
+              </div>
+            </div>
+            <div class="log" id="event-log">[ready] Browser session initialized
+[info] Waiting for reviewer input
+[block] Publish disabled until sanitized output is verified</div>
+          </div>
+        </section>
+
+        <section class="panel wiki-card">
+          <div class="wiki-top">
+            <div>
+              <strong>Governed wiki preview</strong>
+              <span>Renders only after PHI gate passes</span>
+            </div>
+            <span id="preview-status">Status: waiting for sanitized content</span>
+          </div>
+          <div class="wiki-body">
+            <div class="wiki-meta">
+              <div class="badge badge-teal">Approved workflow boundary</div>
+              <div class="badge badge-sky">Audience: Care ops + compliance</div>
+              <div class="badge badge-amber">Version: v0.9 review draft</div>
+            </div>
+            <div class="wiki-title">Discharge Planning Summary</div>
+            <div class="wiki-sub">Owned by Clinical Operations · Requires compliance sign-off before publication</div>
+            <div class="wiki-content" id="wiki-preview">No preview yet. Run redaction, then publish the sanitized output to this governed page.</div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="side-stack">
+        <section class="side-panel">
+          <h3>Control checklist</h3>
+          <div class="list">
+            <div class="list-item">
+              <strong>Boundary enforced</strong>
+              <span>Raw input is treated as unsafe until the detector runs and the output passes the gate.</span>
+            </div>
+            <div class="list-item">
+              <strong>Client-side review step</strong>
+              <span>The interactive demo transforms the text in-browser before the wiki preview action becomes available.</span>
+            </div>
+            <div class="list-item">
+              <strong>Governed publish state</strong>
+              <span>Sanitized content is shown with owner, audience, version, and sign-off context rather than as a loose note.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="side-panel">
+          <h3>Approval chain</h3>
+          <div class="list">
+            <div class="list-item">
+              <strong>D. Osei</strong>
+              <span>Clinical Operations Owner · review pending</span>
+            </div>
+            <div class="list-item">
+              <strong>L. Patel</strong>
+              <span>Privacy Officer · required sign-off</span>
+            </div>
+            <div class="list-item">
+              <strong>R. Kim</strong>
+              <span>Security Lead · control validation</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="side-panel">
+          <h3>Audit trail</h3>
+          <div class="audit-entry">
+            <strong>Template prepared for regulated wiki publish</strong>
+            <span>2026-07-21 14:12 PT</span>
+          </div>
+          <div class="audit-entry">
+            <strong>PHI detector initialized for reviewer test session</strong>
+            <span>2026-07-21 14:13 PT</span>
+          </div>
+          <div class="audit-entry" id="audit-live">
+            <strong>Awaiting reviewer action</strong>
+            <span>Run the demo to generate a live publish event</span>
+          </div>
+        </section>
+      </aside>
+    </div>
   </div>
-</div>
 
-<!-- NOTIFICATION RIBBON -->
-<div class="notif-ribbon" id="notif-ribbon">
-  <div class="notif-dot"></div>
-  <span><strong>1 document awaiting your sign-off:</strong> &nbsp;<span class="notif-link" onclick="showPage(1)">BSA / AML Compliance Training v3.1</span> — requested by P. Williams (BSA Officer)</span>
-  <button class="notif-dismiss" onclick="dismissRibbon()" aria-label="Dismiss">×</button>
-</div>
+  <script>
+    const samples = {
+      handoff: `Patient Name: Maria Thompson
+DOB: 03/14/1978
+MRN: 84722119
+SSN: 411-82-9831
+Phone: (415) 555-0187
+Email: maria.thompson@example.com
+Address: 2841 Cedar Hill Rd, Oakland, CA 94612
 
-<!-- LAYOUT -->
-<div class="layout" id="layout">
-  <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <div class="sidebar-group-label">New Employee Onboarding</div>
-    <div class="sidebar-item active" data-page="0" onclick="showPage(0)">
-      <svg class="sidebar-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M2 2h10v10H2V2zm2 2v6h6V4H4z" fill="currentColor"/>
-      </svg>
-      Employee Code of Conduct
-    </div>
-    <div class="sidebar-item" data-page="1" onclick="showPage(1)">
-      <svg class="sidebar-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M7 4v3l2 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      BSA / AML Compliance
-      <span class="sidebar-badge pending" id="bsa-badge">REVIEW</span>
-    </div>
-    <div class="sidebar-item" data-page="2" onclick="showPage(2)">
-      <svg class="sidebar-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <rect x="1.5" y="3" width="11" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M4 3V2.5A2.5 2.5 0 0 1 9 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-      </svg>
-      GLBA Data Privacy Policy
-    </div>
-    <div class="sidebar-item" data-page="3" onclick="showPage(3)">
-      <svg class="sidebar-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <rect x="2" y="6" width="10" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M5 6V4a2 2 0 1 1 4 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      IT Access & Systems
-    </div>
-    <div class="sidebar-group-label">Admin</div>
-    <div class="sidebar-item" data-page="4" onclick="showPage(4)">
-      <svg class="sidebar-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M2 10V4l5-2 5 2v6l-5 2-5-2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
-        <path d="M7 2v10" stroke="currentColor" stroke-width="1.3" opacity="0.5"/>
-      </svg>
-      Activity Log
-      <span class="sidebar-badge log" id="log-badge">5</span>
-    </div>
-  </nav>
+Discharge planning note:
+Maria Thompson was admitted for chest pain observation. Follow-up with cardiology in 7 days. Reinforce medication adherence and provide updated return precautions.`,
+      protocol: `Name: Robert Chen
+DOB: 11-22-1964
+Medical Record Number: 22091884
+Phone: 650-555-0121
+Email: robert.chen@northbay.org
+Address: 19 Harbor View Avenue, San Rafael, CA 94901
 
-  <!-- MAIN -->
-  <main class="main">
-
-    <!-- PAGE 0: Code of Conduct -->
-    <div class="page active" id="page-0">
-      <div class="breadcrumb"><span onclick="showPage(0)">Onboarding</span> › Code of Conduct</div>
-      <div class="article-header">
-        <div class="article-meta">
-          <span class="badge badge-approved"><span class="badge-dot"></span>Approved &amp; Published</span>
-          <span class="badge badge-all">All Staff</span>
-          <span class="version-tag">v2.4</span>
-        </div>
-        <h1 class="article-title">Employee Code of Conduct & Ethics Policy</h1>
-        <div class="article-subtitle">Effective Jan 1, 2026 · Annual acknowledgement required · Owned by Chief Compliance Officer</div>
-      </div>
-      <div class="article-body">
-        <p>First National Bank is committed to the highest standards of ethical conduct and integrity in all business activities. This Code establishes behavioral expectations for all employees in accordance with applicable federal banking regulations.<span class="cite">1</span></p>
-        <h2>1. Regulatory Framework</h2>
-        <p>All employees are subject to the ethical standards established by the OCC under its Heightened Standards guidelines<span class="cite">1</span> and the Federal Reserve's compliance risk management expectations.<span class="cite">2</span></p>
-        <h2>2. Conflicts of Interest</h2>
-        <p>Employees must disclose any actual or potential conflict of interest to their manager and the Compliance Department, including:</p>
-        <ul>
-          <li>Personal financial interests in entities with which the Bank does business</li>
-          <li>Outside employment or business activities</li>
-          <li>Gifts or entertainment exceeding $50 aggregate value per calendar year</li>
-          <li>Family or personal relationships with vendors, borrowers, or competitors</li>
-        </ul>
-        <div class="callout"><strong>Annual Disclosure Required.</strong> All employees must complete the Conflict of Interest Disclosure Form by January 31. Failure to disclose is itself a violation.</div>
-        <h2>3. Reporting Violations</h2>
-        <p>Employees who observe or suspect violations must report them via: direct supervisor, CCO (compliance@firstnational.bank), anonymous Ethics Hotline: 1-800-555-0199, or the whistleblower portal. Retaliation against good-faith reporters is strictly prohibited.<span class="cite">2</span></p>
-        <div class="references">
-          <div class="references-title">Regulatory References</div>
-          <div class="ref-item"><div class="ref-num">1</div><div>OCC Guidelines Establishing Heightened Standards, 12 CFR Part 30, Appendix D (2014).</div></div>
-          <div class="ref-item"><div class="ref-num">2</div><div>Federal Reserve SR 08-8: Compliance Risk Management Programs (2008).</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE 1: BSA/AML — PENDING APPROVAL -->
-    <div class="page" id="page-1">
-      <div class="breadcrumb"><span onclick="showPage(0)">Onboarding</span> › BSA / AML Compliance Training</div>
-      <div class="article-header">
-        <div class="article-meta" id="bsa-meta">
-          <span class="badge badge-pending" id="bsa-status-badge"><span class="badge-dot"></span>Pending Legal Sign-Off</span>
-          <span class="badge badge-all">All Staff — Required Annual Training</span>
-          <span class="version-tag">v3.1</span>
-        </div>
-        <h1 class="article-title">Bank Secrecy Act & Anti-Money Laundering Compliance</h1>
-        <div class="article-subtitle">Submitted Mar 15, 2026 · Mandatory within 30 days of hire · BSA Officer: P. Williams</div>
-      </div>
-
-      <!-- ★ APPROVAL ACTION CARD — the interactive governance control ★ -->
-      <div class="action-card" id="action-card">
-        <div class="action-card-header">
-          <div class="action-card-icon">⏳</div>
-          <div>
-            <div class="action-card-title">Legal sign-off required before publication</div>
-            <div class="action-card-sub">You are logged in as <strong>A. Torres, General Counsel</strong> — this document is assigned to you for final review.</div>
-          </div>
-        </div>
-        <div class="action-card-body">
-          <div class="action-meta-row">
-            <div class="action-meta-item"><strong>Requested by</strong>P. Williams, BSA Officer</div>
-            <div class="action-meta-item"><strong>Submitted</strong>2026-03-16 10:15 EST</div>
-            <div class="action-meta-item"><strong>Approved so far</strong>2 of 3 reviewers</div>
-            <div class="action-meta-item"><strong>Document</strong>BSA/AML Policy v3.1</div>
-          </div>
-          <textarea class="action-comment" id="action-comment" placeholder="Add a comment (optional) — e.g. 'Approved. AMLA 2020 amendments correctly incorporated.' or reason for requesting changes…"></textarea>
-          <div class="action-btns">
-            <button class="btn-approve" onclick="resolveAction('approve')">✓ Approve & Publish</button>
-            <button class="btn-reject"  onclick="resolveAction('reject')">✗ Request Changes</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="article-body">
-        <div class="callout"><strong>Mandatory Training.</strong> All employees must complete the BSA/AML training module within 30 days of hire and annually thereafter.</div>
-        <p>The Bank Secrecy Act (BSA) requires First National Bank to assist government agencies in detecting and preventing money laundering.<span class="cite">1</span></p>
-        <h2>1. Know Your Customer (KYC)</h2>
-        <p>The Customer Due Diligence (CDD) Rule requires collection and verification of identifying information for all account holders and beneficial owners of legal entity customers.<span class="cite">2</span> Employees must:</p>
-        <ul>
-          <li>Collect full legal name, date of birth, address, and government-issued ID</li>
-          <li>Identify beneficial owners holding ≥25% equity in legal entities</li>
-          <li>Retain CDD records for a minimum of five years per 31 CFR § 1010.430</li>
-          <li>Conduct enhanced due diligence (EDD) for PEPs and MSBs</li>
-        </ul>
-        <h2>2. Suspicious Activity Reporting</h2>
-        <p>Employees must report transactions they know, suspect, or have reason to suspect involve illegal funds or are designed to evade reporting requirements.<span class="cite">3</span></p>
-        <div class="data-table-wrap">
-          <table class="data-table">
-            <thead><tr><th>Report Type</th><th>Threshold</th><th>Deadline</th><th>Retention</th></tr></thead>
-            <tbody>
-              <tr><td>Suspicious Activity Report (SAR)</td><td>$5,000+</td><td>30 days</td><td>5 years</td></tr>
-              <tr><td>Currency Transaction Report (CTR)</td><td>$10,000+ cash</td><td>15 days</td><td>5 years</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <h2>3. Structuring & Willful Blindness</h2>
-        <p>Breaking transactions to avoid CTR thresholds ("structuring") is a federal crime under 31 U.S.C. § 5324.<span class="cite">1</span> Do not tip off customers when a SAR is filed.</p>
-        <div class="references">
-          <div class="references-title">Regulatory References</div>
-          <div class="ref-item"><div class="ref-num">1</div><div>Bank Secrecy Act, 31 U.S.C. §§ 5311–5336. Implementing regulations at 31 CFR Chapter X (FinCEN).</div></div>
-          <div class="ref-item"><div class="ref-num">2</div><div>FinCEN CDD Rule, 31 CFR Parts 1010, 1020 (2016). 81 Fed. Reg. 29398.</div></div>
-          <div class="ref-item"><div class="ref-num">3</div><div>FFIEC BSA/AML Examination Manual (2020). Federal Financial Institutions Examination Council.</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE 2: GLBA -->
-    <div class="page" id="page-2">
-      <div class="breadcrumb"><span onclick="showPage(0)">Onboarding</span> › GLBA Data Privacy Policy</div>
-      <div class="article-header">
-        <div class="article-meta">
-          <span class="badge badge-approved"><span class="badge-dot"></span>Approved &amp; Published</span>
-          <span class="badge badge-all">All Staff</span>
-          <span class="version-tag">v1.9</span>
-        </div>
-        <h1 class="article-title">Customer Data Privacy & Information Security Policy</h1>
-        <div class="article-subtitle">Effective Jan 1, 2026 · GLBA Regulation P · Chief Privacy Officer: S. Lee</div>
-      </div>
-      <div class="article-body">
-        <p>First National Bank is subject to the privacy provisions of the Gramm-Leach-Bliley Act (GLBA),<span class="cite">1</span> which govern how the Bank collects, uses, and protects nonpublic personal information (NPI) about customers.</p>
-        <h2>1. Nonpublic Personal Information (NPI)</h2>
-        <ul>
-          <li>Account numbers, balances, and transaction history</li>
-          <li>Social Security Numbers and government-issued IDs</li>
-          <li>Credit scores, loan applications, and financial statements</li>
-          <li>Any information derived from the above</li>
-        </ul>
-        <h2>2. Safeguards Program</h2>
-        <p>The FTC Safeguards Rule requires a comprehensive information security program.<span class="cite">2</span> Employees must: lock workstations when away, never share credentials, encrypt NPI files before transmission, and report lost devices within 1 hour.</p>
-        <div class="callout-blue"><strong>Need-to-Know Only.</strong> Accessing customer records outside your job function is a policy violation and may constitute a GLBA breach.</div>
-        <div class="references">
-          <div class="references-title">Regulatory References</div>
-          <div class="ref-item"><div class="ref-num">1</div><div>Gramm-Leach-Bliley Act, 15 U.S.C. §§ 6801–6809 (1999).</div></div>
-          <div class="ref-item"><div class="ref-num">2</div><div>FTC Safeguards Rule, 16 CFR Part 314 (amended 2023).</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE 3: IT Access -->
-    <div class="page" id="page-3">
-      <div class="breadcrumb"><span onclick="showPage(0)">Onboarding</span> › IT Access & Systems</div>
-      <div class="article-header">
-        <div class="article-meta">
-          <span class="badge badge-approved"><span class="badge-dot"></span>Approved &amp; Published</span>
-          <span class="badge badge-all">All Staff</span>
-          <span class="version-tag">v2.1</span>
-        </div>
-        <h1 class="article-title">IT Systems Access & Cybersecurity Onboarding</h1>
-        <div class="article-subtitle">Effective Feb 1, 2026 · FFIEC IT Handbook · CISO: R. Kim</div>
-      </div>
-      <div class="article-body">
-        <p>Access is granted on the principle of least privilege — you receive the minimum access necessary for your job, consistent with FFIEC IT guidance.<span class="cite">1</span></p>
-        <h2>1. Multi-Factor Authentication</h2>
-        <p>MFA is mandatory for all systems and remote access. Per NIST SP 800-63B,<span class="cite">2</span> SMS-based OTP is prohibited for privileged access. The Bank uses YubiKey hardware tokens or Microsoft Authenticator.</p>
-        <div class="callout"><strong>Day 1 Required.</strong> Activate MFA for corporate email and VPN before end of your first day. IT Help Desk: ext. 4400.</div>
-        <h2>2. Access Termination</h2>
-        <p>Upon separation, all access is revoked within 4 hours of HR notification, per NIST SP 800-53 AC-2 controls.<span class="cite">3</span></p>
-        <div class="references">
-          <div class="references-title">Regulatory References</div>
-          <div class="ref-item"><div class="ref-num">1</div><div>FFIEC IT Examination Handbook — Information Security Booklet (2021).</div></div>
-          <div class="ref-item"><div class="ref-num">2</div><div>NIST SP 800-63B: Digital Identity Guidelines (2017, rev. 2022).</div></div>
-          <div class="ref-item"><div class="ref-num">3</div><div>NIST SP 800-53 Rev. 5, Control AC-2 Account Management (2020).</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE 4: ACTIVITY LOG -->
-    <div class="page" id="page-4">
-      <div class="breadcrumb"><span onclick="showPage(0)">Admin</span> › Activity Log</div>
-      <div class="article-header">
-        <div class="article-meta">
-          <span class="badge badge-all">Audit Record</span>
-          <span class="version-tag" style="font-family:monospace;">All Documents</span>
-        </div>
-        <h1 class="article-title">Activity Log — Knowledge Base Governance</h1>
-        <div class="article-subtitle">Timestamped record of all approvals, edits, and submissions across all policies.</div>
-      </div>
-      <div class="log-filters">
-        <button class="log-filter active" onclick="filterLog('all', this)">All Events</button>
-        <button class="log-filter" onclick="filterLog('approved', this)">Approvals</button>
-        <button class="log-filter" onclick="filterLog('pending', this)">Pending</button>
-        <button class="log-filter" onclick="filterLog('edited', this)">Edits</button>
-        <button class="log-filter" onclick="filterLog('rejected', this)">Rejected</button>
-      </div>
-      <div id="log-entries"></div>
-    </div>
-
-  </main>
-
-  <!-- GOVERNANCE RAIL -->
-  <aside class="rail" id="rail"></aside>
-</div>
-
-<script>
-  // ── STATE ────────────────────────────────────────────────
-  var bsaResolved = false;  // tracks whether approval action has been taken
-  var ribbonVisible = true;
-
-  // Master activity log — shared source of truth
-  var activityLog = [
-    { id: 'e6', ts: '2026-03-16 10:15 EST', type: 'pending',  actor: 'P. Williams', action: 'requested legal sign-off from A. Torres', doc: 'BSA/AML Compliance Training v3.1', docPage: 1, comment: '' },
-    { id: 'e5', ts: '2026-03-15 08:52 EST', type: 'approved', actor: 'M. Chen',     action: 'approved (compliance sign-off)',           doc: 'BSA/AML Compliance Training v3.1', docPage: 1, comment: 'Compliance review complete. AMLA amendments verified.' },
-    { id: 'e4', ts: '2026-03-12 14:30 EST', type: 'approved', actor: 'P. Williams', action: 'approved and submitted for review',          doc: 'BSA/AML Compliance Training v3.1', docPage: 1, comment: '' },
-    { id: 'e3', ts: '2026-03-10 15:30 EST', type: 'edited',   actor: 'P. Williams', action: 'updated SAR filing thresholds table',        doc: 'BSA/AML Compliance Training v3.1', docPage: 1, comment: '' },
-    { id: 'e2', ts: '2026-01-03 09:14 EST', type: 'approved', actor: 'M. Chen',     action: 'approved and published',                    doc: 'Employee Code of Conduct v2.4',     docPage: 0, comment: 'Annual review complete. No material changes from v2.3.' },
-    { id: 'e1', ts: '2025-12-15 14:00 EST', type: 'created',  actor: 'K. Davis',    action: 'submitted v2.4 draft for review',           doc: 'Employee Code of Conduct v2.4',     docPage: 0, comment: '' }
-  ];
-
-  // Per-page governance metadata
-  var governance = [
-    {
-      version: 'v2.4', updated: 'Jan 3, 2026',
-      status: 'approved',
-      approvers: [
-        { initials: 'MC', name: 'M. Chen',  role: 'Chief Compliance Officer', ts: '2026-01-03 09:14 EST', color: '#1D5FA8', state: 'approved' },
-        { initials: 'AT', name: 'A. Torres',role: 'General Counsel',           ts: '2025-12-28 16:00 EST', color: '#0F6B3B', state: 'approved' },
-        { initials: 'KD', name: 'K. Davis', role: 'Chief HR Officer',          ts: '2025-12-22 11:00 EST', color: '#6B21A8', state: 'approved' }
-      ],
-      perms: [
-        { group: 'All Employees', level: 'View', cls: 'perm-view' },
-        { group: 'HR & Compliance', level: 'Edit', cls: 'perm-edit' },
-        { group: 'External / Vendor', level: 'No Access', cls: 'perm-none' }
-      ]
-    },
-    {
-      version: 'v3.1', updated: 'Mar 15, 2026',
-      status: 'pending',
-      approvers: [
-        { initials: 'PW', name: 'P. Williams', role: 'BSA Officer',             ts: '2026-03-12 14:30 EST', color: '#B45309', state: 'approved' },
-        { initials: 'MC', name: 'M. Chen',     role: 'Chief Compliance Officer', ts: '2026-03-15 08:52 EST', color: '#1D5FA8', state: 'approved' },
-        { initials: 'AT', name: 'A. Torres',   role: 'General Counsel',          ts: 'Awaiting sign-off',    color: '#0F6B3B', state: 'pending' }
-      ],
-      perms: [
-        { group: 'All Employees', level: 'View', cls: 'perm-view' },
-        { group: 'BSA / Compliance', level: 'Edit', cls: 'perm-edit' },
-        { group: 'External / Vendor', level: 'No Access', cls: 'perm-none' }
-      ]
-    },
-    {
-      version: 'v1.9', updated: 'Jan 1, 2026',
-      status: 'approved',
-      approvers: [
-        { initials: 'SL', name: 'S. Lee', role: 'Chief Privacy Officer',        ts: '2026-01-01 07:00 EST', color: '#6B21A8', state: 'approved' },
-        { initials: 'RK', name: 'R. Kim', role: 'Chief Information Security Officer', ts: '2025-12-30 14:22 EST', color: '#1D5FA8', state: 'approved' },
-        { initials: 'AT', name: 'A. Torres', role: 'General Counsel',           ts: '2025-12-26 10:00 EST', color: '#0F6B3B', state: 'approved' }
-      ],
-      perms: [
-        { group: 'All Employees', level: 'View', cls: 'perm-view' },
-        { group: 'Privacy & Compliance', level: 'Edit', cls: 'perm-edit' },
-        { group: 'External / Vendor', level: 'No Access', cls: 'perm-none' }
-      ]
-    },
-    {
-      version: 'v2.1', updated: 'Feb 1, 2026',
-      status: 'approved',
-      approvers: [
-        { initials: 'RK', name: 'R. Kim',  role: 'Chief Information Security Officer', ts: '2026-02-01 08:00 EST', color: '#1D5FA8', state: 'approved' },
-        { initials: 'JP', name: 'J. Park', role: 'IT Director',                        ts: '2026-01-28 13:45 EST', color: '#B45309', state: 'approved' },
-        { initials: 'MC', name: 'M. Chen', role: 'Chief Compliance Officer',           ts: '2026-01-25 11:30 EST', color: '#0F6B3B', state: 'approved' }
-      ],
-      perms: [
-        { group: 'All Employees', level: 'View', cls: 'perm-view' },
-        { group: 'IT & Security', level: 'Edit', cls: 'perm-edit' },
-        { group: 'External / Vendor', level: 'No Access', cls: 'perm-none' }
-      ]
-    },
-    null  // Activity Log page — no rail metadata
-  ];
-
-  // ── ICONS ────────────────────────────────────────────────
-  var dotIcon = {
-    approved: '<svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="#0F6B3B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    rejected: '<svg viewBox="0 0 10 10" fill="none"><path d="M3 3l4 4M7 3l-4 4" stroke="#991B1B" stroke-width="1.6" stroke-linecap="round"/></svg>',
-    edited:   '<svg viewBox="0 0 10 10" fill="none"><path d="M2 7.5l1-3L7 1l2 2-4 3.5-3 1z" stroke="#1D5FA8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    created:  '<svg viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="3" stroke="#9CA3AF" stroke-width="1.5"/></svg>',
-    pending:  '<svg viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="3" stroke="#F59E0B" stroke-width="1.5"/><path d="M5 3v2l1 1" stroke="#F59E0B" stroke-width="1.2" stroke-linecap="round"/></svg>'
-  };
-  var logEmoji = { approved: '✅', rejected: '🔴', edited: '✏️', created: '📄', pending: '⏳' };
-
-  var currentPage = 0;
-
-  // ── RENDER RAIL ──────────────────────────────────────────
-  function renderRail(idx) {
-    var rail = document.getElementById('rail');
-    var g = governance[idx];
-    if (!g) { rail.innerHTML = ''; return; }
-
-    var allApproved = g.approvers.every(function(a) { return a.state === 'approved'; });
-    var allRejected = g.approvers.some(function(a)  { return a.state === 'rejected'; });
-    var statusBadge = allRejected
-      ? '<span class="badge badge-rejected"><span class="badge-dot"></span>Changes Requested</span>'
-      : allApproved
-        ? '<span class="badge badge-approved"><span class="badge-dot"></span>Approved &amp; Published</span>'
-        : '<span class="badge badge-pending"><span class="badge-dot"></span>Pending Legal Sign-Off</span>';
-
-    var approversHTML = g.approvers.map(function(a) {
-      return '<div class="approver">' +
-        '<div class="approver-avatar" style="background:' + a.color + '">' + a.initials + '</div>' +
-        '<div class="approver-info">' +
-          '<div class="approver-name">' + a.name + '</div>' +
-          '<div class="approver-role">' + a.role + '</div>' +
-          '<div class="approver-date">' + a.ts + '</div>' +
-        '</div>' +
-        '<div class="approver-status ' + (a.state === 'approved' ? 'ok' : a.state === 'rejected' ? 'rej' : 'pend') + '">' +
-          (a.state === 'approved' ? 'Approved' : a.state === 'rejected' ? 'Rejected' : 'Pending') +
-        '</div>' +
-      '</div>';
-    }).join('');
-
-    // Recent audit events for this page
-    var pageLog = activityLog.filter(function(e) { return e.docPage === idx; }).slice(0, 6);
-    var pendingCount = pageLog.filter(function(e) { return e.type === 'pending'; }).length;
-    var auditHTML = pageLog.map(function(e, i) {
-      var isFirst = i === 0;
-      return '<div class="audit-item">' +
-        '<div class="audit-dot ' + e.type + (isFirst && e._new ? ' new-entry' : '') + '">' + dotIcon[e.type] + '</div>' +
-        '<div class="audit-content">' +
-          '<div class="audit-action"><strong>' + e.actor + '</strong> ' + e.action +
-            (isFirst && e._new ? '<span class="new-tag' + (e.type === 'pending' ? ' pend-tag' : e.type === 'rejected' ? ' rej-tag' : '') + '">NEW</span>' : '') +
-          '</div>' +
-          '<div class="audit-time">' + e.ts + '</div>' +
-          (e.comment ? '<div class="audit-comment-snippet">"' + e.comment + '"</div>' : '') +
-        '</div>' +
-      '</div>';
-    }).join('');
-
-    var permsHTML = g.perms.map(function(p) {
-      return '<div class="perm-row"><div class="perm-group">' + p.group + '</div><div class="perm-level ' + p.cls + '">' + p.level + '</div></div>';
-    }).join('');
-
-    var countTag = pendingCount > 0 && !bsaResolved
-      ? '<span class="rail-count">' + pendingCount + ' pending</span>'
-      : (bsaResolved ? '<span class="rail-count done">resolved</span>' : '');
-
-    rail.innerHTML =
-      '<div class="rail-section">' +
-        '<div class="rail-label">Document Status</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' + statusBadge + '<span class="version-tag">' + g.version + '</span></div>' +
-        '<div style="font-size:12px;color:var(--text-muted);">Last updated ' + g.updated + '</div>' +
-      '</div>' +
-      '<div class="rail-section">' +
-        '<div class="rail-label">Approval Chain</div>' +
-        '<div class="approval-chain">' + approversHTML + '</div>' +
-      '</div>' +
-      '<div class="rail-section">' +
-        '<div class="rail-label">Audit Trail ' + countTag + '</div>' +
-        '<div class="audit-list">' + auditHTML + '</div>' +
-        '<div style="font-size:11px;color:var(--accent);cursor:pointer;margin-top:6px;" onclick="showPage(4)">View full activity log →</div>' +
-      '</div>' +
-      '<div class="rail-section">' +
-        '<div class="rail-label">Access Permissions</div>' +
-        permsHTML +
-      '</div>';
-  }
-
-  // ── RESOLVE APPROVAL ACTION ──────────────────────────────
-  function resolveAction(decision) {
-    var comment = document.getElementById('action-comment').value.trim();
-    var now = new Date();
-    var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
-    var ts = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) +
-             ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ' EST';
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    var dateStr = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
-
-    bsaResolved = true;
-
-    // Update approval chain state
-    var bsaGov = governance[1];
-    var torres = bsaGov.approvers[2];
-    torres.state = decision === 'approve' ? 'approved' : 'rejected';
-    torres.ts = ts;
-
-    // Update document status
-    if (decision === 'approve') {
-      bsaGov.status = 'approved';
-    } else {
-      bsaGov.status = 'rejected';
-    }
-
-    // Prepend to activity log
-    var newEntry = {
-      id: 'e-live',
-      ts: ts,
-      type: decision === 'approve' ? 'approved' : 'rejected',
-      actor: 'A. Torres',
-      action: decision === 'approve'
-        ? 'approved — legal sign-off complete. Document published.'
-        : 'requested changes — returned to BSA Officer for revision.',
-      doc: 'BSA/AML Compliance Training v3.1',
-      docPage: 1,
-      comment: comment || (decision === 'approve' ? 'Legal review complete.' : 'Changes requested before publication.'),
-      _new: true
+Care coordination note:
+Robert Chen is overdue for post-op wound check. Nursing team to confirm appointment window and escalate if fever or drainage worsens.`
     };
-    activityLog.unshift(newEntry);
 
-    // Remove old pending entry
-    activityLog = activityLog.filter(function(e) { return !(e.type === 'pending' && e.docPage === 1); });
+    const sourceEl = document.getElementById("source-text");
+    const outputEl = document.getElementById("redacted-output");
+    const detectorTagsEl = document.getElementById("detector-tags");
+    const detectedCountEl = document.getElementById("detected-count");
+    const redactedCountEl = document.getElementById("redacted-count");
+    const gateStatusEl = document.getElementById("gate-status");
+    const eventLogEl = document.getElementById("event-log");
+    const publishBtn = document.getElementById("publish-btn");
+    const previewEl = document.getElementById("wiki-preview");
+    const previewStatusEl = document.getElementById("preview-status");
+    const auditLiveEl = document.getElementById("audit-live");
 
-    // Update the action card UI
-    var card = document.getElementById('action-card');
-    var statusBadgeEl = document.getElementById('bsa-status-badge');
+    const patterns = [
+      { label: "Patient Name", regex: /(Patient Name:\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g, token: "$1[REDACTED: PATIENT_NAME]" },
+      { label: "Name", regex: /(^Name:\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gm, token: "$1[REDACTED: PATIENT_NAME]" },
+      { label: "DOB", regex: /\b(?:DOB:\s*)?\d{2}[\/-]\d{2}[\/-]\d{4}\b/g, token: "[REDACTED: DOB]" },
+      { label: "MRN", regex: /\b(?:MRN|Medical Record Number):?\s*\d{6,10}\b/g, token: "[REDACTED: MRN]" },
+      { label: "SSN", regex: /\b\d{3}-\d{2}-\d{4}\b/g, token: "[REDACTED: SSN]" },
+      { label: "Phone", regex: /(?:\(\d{3}\)\s*|\b\d{3}-)\d{3}-\d{4}\b/g, token: "[REDACTED: PHONE]" },
+      { label: "Email", regex: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, token: "[REDACTED: EMAIL]" },
+      { label: "Address", regex: /\b\d{1,5}\s+[A-Za-z0-9.\- ]+(?:Rd|Road|St|Street|Ave|Avenue|Blvd|Lane|Ln|Drive|Dr),\s*[A-Za-z .'-]+,\s*[A-Z]{2}\s+\d{5}\b/g, token: "[REDACTED: ADDRESS]" },
+      { label: "Inline Name", regex: /\b(?!Patient Name\b|Medical Record\b|Discharge Planning\b|Care Coordination\b)([A-Z][a-z]+ [A-Z][a-z]+)\b/g, token: "[REDACTED: NAME]" }
+    ];
 
-    if (decision === 'approve') {
-      card.className = 'action-card resolved';
-      card.innerHTML =
-        '<div class="action-card-header">' +
-          '<div class="action-card-icon">✅</div>' +
-          '<div>' +
-            '<div class="action-card-title">Approved & Published</div>' +
-            '<div class="action-card-sub">Signed off by <strong>A. Torres, General Counsel</strong> at ' + ts + '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="action-card-body" style="font-size:13px;color:var(--text-body);">' +
-          (comment ? '"' + comment + '"' : 'Legal review complete. Document is now live for all employees.') +
-          '<div style="margin-top:12px;font-size:12px;color:var(--text-muted);">Audit entry recorded · <span style="color:var(--accent);cursor:pointer;" onclick="showPage(4)">View activity log →</span></div>' +
-        '</div>';
-      statusBadgeEl.className = 'badge badge-approved';
-      statusBadgeEl.innerHTML = '<span class="badge-dot"></span>Approved &amp; Published';
-    } else {
-      card.className = 'action-card rejected-card';
-      card.innerHTML =
-        '<div class="action-card-header">' +
-          '<div class="action-card-icon">🔴</div>' +
-          '<div>' +
-            '<div class="action-card-title">Changes Requested — Returned for Revision</div>' +
-            '<div class="action-card-sub">Reviewed by <strong>A. Torres, General Counsel</strong> at ' + ts + '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="action-card-body" style="font-size:13px;color:var(--text-body);">' +
-          (comment ? '"' + comment + '"' : 'Changes requested. Document returned to BSA Officer for revision.') +
-          '<div style="margin-top:12px;font-size:12px;color:var(--text-muted);">Audit entry recorded · <span style="color:var(--accent);cursor:pointer;" onclick="showPage(4)">View activity log →</span></div>' +
-        '</div>';
-      statusBadgeEl.className = 'badge badge-rejected';
-      statusBadgeEl.innerHTML = '<span class="badge-dot"></span>Changes Requested';
+    function setLog(lines) {
+      eventLogEl.textContent = lines.join("\n");
     }
 
-    // Update sidebar badge
-    var bsaBadge = document.getElementById('bsa-badge');
-    if (bsaBadge) { bsaBadge.parentNode.removeChild(bsaBadge); }
+    function updateTags(hasRun, hasResidualPhi, foundLabels) {
+      if (!hasRun) {
+        detectorTagsEl.innerHTML = '<div class="tag tag-alert">PHI gate not yet evaluated</div><div class="tag tag-info">Detector checks: name fields, DOB, MRN, SSN, phone, email, address</div>';
+        return;
+      }
 
-    // Update log badge count
-    document.getElementById('log-badge').textContent = activityLog.length;
+      const uniq = [...new Set(foundLabels)];
+      const statusTag = hasResidualPhi
+        ? '<div class="tag tag-alert">Residual PHI patterns detected: publish blocked</div>'
+        : '<div class="tag tag-safe">Sanitized output passed detector checks</div>';
+      const labels = uniq.length
+        ? uniq.map((label) => '<div class="tag tag-info">' + label + '</div>').join("")
+        : '<div class="tag tag-info">No targeted PHI patterns found</div>';
+      detectorTagsEl.innerHTML = statusTag + labels;
+    }
 
-    // Dismiss ribbon
-    dismissRibbon();
+    function nowStamp() {
+      return new Date().toLocaleString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZoneName: "short"
+      });
+    }
 
-    // Re-render rail with new state
-    renderRail(1);
+    function redactText() {
+      const source = sourceEl.value;
+      let transformed = source;
+      let detected = 0;
+      let redacted = 0;
+      const foundLabels = [];
 
-    // If user is on the log page, refresh it
-    if (currentPage === 4) renderLog('all');
-  }
+      patterns.forEach((pattern) => {
+        const matchRegex = new RegExp(pattern.regex.source, pattern.regex.flags);
+        const replaceRegex = new RegExp(pattern.regex.source, pattern.regex.flags);
+        const matches = transformed.match(matchRegex);
+        if (matches && matches.length) {
+          detected += matches.length;
+          redacted += matches.length;
+          foundLabels.push(pattern.label);
+          transformed = transformed.replace(replaceRegex, pattern.token);
+        }
+      });
 
-  // ── ACTIVITY LOG RENDER ──────────────────────────────────
-  function renderLog(filter) {
-    var entries = filter === 'all'
-      ? activityLog
-      : activityLog.filter(function(e) { return e.type === filter; });
+      const residualPhi = patterns.some((pattern) => {
+        const checkRegex = new RegExp(pattern.regex.source, pattern.regex.flags);
+        return checkRegex.test(transformed);
+      });
 
-    var html = entries.map(function(e) {
-      return '<div class="log-entry" data-type="' + e.type + '">' +
-        '<div class="log-ts">' + e.ts + '</div>' +
-        '<div class="log-icon"><div class="log-icon-dot ' + e.type + '">' + logEmoji[e.type] + '</div></div>' +
-        '<div class="log-body">' +
-          '<span class="log-actor">' + e.actor + '</span> ' +
-          '<span class="log-action-text">' + e.action + '</span>' +
-          '<div class="log-doc" onclick="showPage(' + e.docPage + ')">' + e.doc + '</div>' +
-          (e.comment ? '<div class="log-comment">"' + e.comment + '"</div>' : '') +
-        '</div>' +
-        '<span class="log-badge ' + e.type + '">' +
-          (e.type === 'approved' ? 'Approved' : e.type === 'rejected' ? 'Rejected' : e.type === 'pending' ? 'Pending' : e.type === 'edited' ? 'Edited' : 'Created') +
-        '</span>' +
-      '</div>';
-    }).join('');
+      outputEl.textContent = transformed || "No text provided.";
+      detectedCountEl.textContent = String(detected);
+      redactedCountEl.textContent = String(redacted);
+      gateStatusEl.textContent = residualPhi ? "Blocked" : "Ready";
+      publishBtn.disabled = residualPhi || !transformed.trim();
+      previewStatusEl.textContent = residualPhi
+        ? "Status: blocked until redaction is clean"
+        : "Status: sanitized content ready to publish";
 
-    document.getElementById('log-entries').innerHTML = html ||
-      '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">No entries for this filter.</div>';
-  }
+      setLog([
+        "[scan] Browser input received",
+        "[scan] Targeted identifiers detected = " + detected,
+        "[transform] Redaction tokens inserted = " + redacted,
+        residualPhi
+          ? "[block] Residual PHI patterns remain; publish denied"
+          : "[pass] Sanitized output passed detector checks",
+        "[state] No downstream publish step is unlocked until this gate passes"
+      ]);
 
-  function filterLog(type, btn) {
-    document.querySelectorAll('.log-filter').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    renderLog(type);
-  }
+      updateTags(true, residualPhi, foundLabels);
+    }
 
-  // ── PAGE SWITCHING ───────────────────────────────────────
-  function showPage(idx) {
-    currentPage = idx;
-    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-    document.querySelectorAll('.sidebar-item[data-page]').forEach(function(i) { i.classList.remove('active'); });
-    document.getElementById('page-' + idx).classList.add('active');
-    var sidebarItem = document.querySelector('[data-page="' + idx + '"]');
-    if (sidebarItem) sidebarItem.classList.add('active');
-    renderRail(idx);
-    if (idx === 4) renderLog('all');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+    function publishPreview() {
+      const content = outputEl.textContent.trim();
+      if (!content || publishBtn.disabled) return;
 
-  function dismissRibbon() {
-    ribbonVisible = false;
-    var ribbon = document.getElementById('notif-ribbon');
-    ribbon.classList.add('hidden');
-  }
+      previewEl.textContent = content;
+      previewStatusEl.textContent = "Status: sanitized content published to preview";
+      auditLiveEl.innerHTML = "<strong>Sanitized knowledge draft published to governed preview</strong><span>" + nowStamp() + "</span>";
+      setLog([
+        "[scan] Sanitized output verified",
+        "[pass] Publish gate opened",
+        "[publish] Governed wiki preview updated using sanitized text only",
+        "[audit] Live review event recorded for this browser session"
+      ]);
+    }
 
-  // ── INIT ─────────────────────────────────────────────────
-  renderRail(0);
-</script>
+    document.querySelectorAll("[data-sample]").forEach((button) => {
+      button.addEventListener("click", () => {
+        sourceEl.value = samples[button.dataset.sample];
+        outputEl.textContent = "Run the PHI redaction step to generate a sanitized version of the note.";
+        previewEl.textContent = "No preview yet. Run redaction, then publish the sanitized output to this governed page.";
+        publishBtn.disabled = true;
+        gateStatusEl.textContent = "Blocked";
+        detectedCountEl.textContent = "0";
+        redactedCountEl.textContent = "0";
+        previewStatusEl.textContent = "Status: waiting for sanitized content";
+        auditLiveEl.innerHTML = "<strong>Awaiting reviewer action</strong><span>Run the demo to generate a live publish event</span>";
+        updateTags(false, true, []);
+        setLog([
+          "[ready] Sample \"" + button.dataset.sample + "\" loaded into browser session",
+          "[info] Waiting for reviewer to run the PHI detector",
+          "[block] Publish disabled until sanitized output is verified"
+        ]);
+      });
+    });
+
+    document.getElementById("clear-input").addEventListener("click", () => {
+      sourceEl.value = "";
+      outputEl.textContent = "Run the PHI redaction step to generate a sanitized version of the note.";
+      previewEl.textContent = "No preview yet. Run redaction, then publish the sanitized output to this governed page.";
+      publishBtn.disabled = true;
+      gateStatusEl.textContent = "Blocked";
+      detectedCountEl.textContent = "0";
+      redactedCountEl.textContent = "0";
+      previewStatusEl.textContent = "Status: waiting for sanitized content";
+      updateTags(false, true, []);
+      setLog([
+        "[ready] Input cleared",
+        "[info] Waiting for reviewer input",
+        "[block] Publish disabled until sanitized output is verified"
+      ]);
+    });
+
+    document.getElementById("redact-btn").addEventListener("click", redactText);
+    publishBtn.addEventListener("click", publishPreview);
+  </script>
 </body>
 </html>

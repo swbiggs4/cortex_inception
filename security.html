@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homeroom Health | Security Posture</title>
+  <meta
+    name="description"
+    content="Written security posture for Homeroom Health including PHI boundary, encryption stance, retention model, segregation, and HIPAA/BAA position."
+  />
+  <style>
+    :root {
+      --ink: #111827;
+      --ink-soft: #475569;
+      --line: #dbe4ee;
+      --paper: #f8fafc;
+      --white: #ffffff;
+      --teal: #0f766e;
+      --teal-soft: #ccfbf1;
+      --amber: #b45309;
+      --amber-soft: #ffedd5;
+      --slate: #0f172a;
+      --sky: #0369a1;
+      --sky-soft: #e0f2fe;
+      --shadow: 0 22px 56px rgba(15, 23, 42, 0.08);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+        linear-gradient(180deg, #f9fbfd 0%, #eef4f7 100%);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--teal), var(--sky));
+      display: grid;
+      place-items: center;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 14px;
+      color: var(--ink-soft);
+    }
+
+    .nav-links a:hover { color: var(--ink); }
+
+    .hero {
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin: 16px 0 28px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(38px, 6vw, 58px);
+      line-height: 1.04;
+      letter-spacing: -0.04em;
+      font-weight: 400;
+      margin-bottom: 16px;
+      text-wrap: balance;
+    }
+
+    .hero p {
+      color: var(--ink-soft);
+      font-size: 17px;
+      max-width: 630px;
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .micro-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+    }
+
+    .micro-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .micro-card span {
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .section {
+      display: grid;
+      grid-template-columns: 0.72fr 1.28fr;
+      gap: 22px;
+      margin-bottom: 20px;
+    }
+
+    .section-label {
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: var(--radius);
+      padding: 20px;
+      height: fit-content;
+      position: sticky;
+      top: 18px;
+    }
+
+    .section-label h2 {
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 10px;
+    }
+
+    .section-label p {
+      font-size: 15px;
+      color: var(--ink-soft);
+    }
+
+    .section-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
+    }
+
+    .panel h3 {
+      font-size: 22px;
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+
+    .panel p,
+    .panel li {
+      color: var(--ink-soft);
+      font-size: 15px;
+    }
+
+    .panel ul {
+      padding-left: 18px;
+      margin-top: 12px;
+    }
+
+    .callout {
+      border-radius: 20px;
+      padding: 18px;
+      border: 1px solid transparent;
+    }
+
+    .callout-teal {
+      background: var(--teal-soft);
+      border-color: rgba(15, 118, 110, 0.14);
+    }
+
+    .callout-amber {
+      background: var(--amber-soft);
+      border-color: rgba(180, 83, 9, 0.14);
+    }
+
+    .callout-sky {
+      background: var(--sky-soft);
+      border-color: rgba(3, 105, 161, 0.14);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      min-height: 120px;
+    }
+
+    .flow-step b {
+      display: inline-block;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--teal);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .flow-step span {
+      color: var(--ink-soft);
+      font-size: 13px;
+      display: block;
+    }
+
+    .footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(15, 23, 42, 0.08);
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    @media (max-width: 960px) {
+      .hero,
+      .section,
+      .flow,
+      .footer {
+        grid-template-columns: 1fr;
+      }
+
+      .section-label {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 20px, 1120px); }
+      .nav { flex-wrap: wrap; }
+      .nav-links { width: 100%; justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="nav">
+      <a class="brand" href="index.html">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect x="1.5" y="1.5" width="6" height="6" rx="1.5" fill="white"/>
+            <rect x="10.5" y="1.5" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+            <rect x="1.5" y="10.5" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+            <rect x="10.5" y="10.5" width="6" height="6" rx="1.5" fill="white" opacity="0.3"/>
+          </svg>
+        </div>
+        <span>Homeroom Health</span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Overview</a>
+        <a href="wiki.html">Live demo</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Security posture</div>
+          <h1>The PHI boundary, encryption stance, and BAA position are stated in writing.</h1>
+          <p>
+            Homeroom is designed for approved policies, protocols, onboarding, and operational knowledge. The intended production workflow does not require PHI. The live demo on this site shows PHI redacted in the browser before any next step can proceed.
+          </p>
+        </div>
+        <div class="hero-grid">
+          <div class="micro-card">
+            <strong>Primary use case</strong>
+            <span>Governed internal knowledge for policies, procedures, training, and clinical guidance.</span>
+          </div>
+          <div class="micro-card">
+            <strong>Live proof on this site</strong>
+            <span>Interactive redaction demo that blocks downstream action until identifiers are masked.</span>
+          </div>
+          <div class="micro-card">
+            <strong>Review posture</strong>
+            <span>Evidence-first review packet, access controls, and written boundary language for risk teams.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-label">
+          <h2>Boundary</h2>
+          <p>The most important question is not “do you have security features,” but “what data enters the system and under what rules.”</p>
+        </div>
+        <div class="section-body">
+          <article class="panel">
+            <h3>PHI boundary and intended use</h3>
+            <p>
+              Homeroom’s intended workflow is for internal knowledge content such as approved policies, clinical protocols, onboarding materials, and operating procedures. That workflow is designed so organizations do not need PHI to receive value from the product.
+            </p>
+            <div class="callout callout-amber">
+              <strong>Current stance</strong>
+              <p>PHI should not be pasted into the production knowledge workflow. On this site, the demo treats PHI as unsafe input and redacts it locally in the browser before any publish or model-adjacent step is allowed.</p>
+            </div>
+          </article>
+          <article class="panel">
+            <h3>What this means for vendor risk</h3>
+            <ul>
+              <li>The operational knowledge use case is separated from patient-specific content.</li>
+              <li>Clinical staff get easier-to-read guidance without creating a new repository of patient records.</li>
+              <li>The review focus shifts to governance, auditability, and access control around approved knowledge assets.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-label">
+          <h2>Encryption</h2>
+          <p>The site should answer how content is protected in transit and at rest, even when the target workload is non-PHI operational knowledge.</p>
+        </div>
+        <div class="section-body">
+          <article class="panel">
+            <h3>Encryption posture</h3>
+            <ul>
+              <li>Transport encryption for browser-to-service traffic via TLS.</li>
+              <li>Encryption at rest for persisted application content and metadata.</li>
+              <li>Role-based access boundaries applied before content presentation.</li>
+              <li>Audit visibility on page ownership, approvals, and changes to controlled content.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Demo-specific behavior</h3>
+            <div class="callout callout-teal">
+              <strong>Live demo note</strong>
+              <p>The PHI-redaction demo on this site runs in the user’s browser session. The raw pasted sample is transformed locally before the “publish to wiki” step unlocks.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-label">
+          <h2>HIPAA / BAA</h2>
+          <p>This is where the buyer wants precision. Table-stakes claims are not enough without the operating rule behind them.</p>
+        </div>
+        <div class="section-body">
+          <article class="panel">
+            <h3>HIPAA and BAA stance</h3>
+            <p>
+              Homeroom’s core knowledge workflow is intended to operate without PHI. Because that workflow is designed around non-PHI operational content, a BAA is not required for the default use case described on this site.
+            </p>
+            <div class="callout callout-sky">
+              <strong>If the workflow changes</strong>
+              <p>If a customer’s intended use evolves so that PHI would be processed or stored as part of the product workflow, the PHI handling boundary must be redefined before production use, including execution of a BAA and updated technical controls appropriate to that scope.</p>
+            </div>
+          </article>
+          <article class="panel">
+            <h3>Why the demo still matters</h3>
+            <p>
+              Even when the intended workflow excludes PHI, real-world teams test the edges. The demo exists so a reviewer can intentionally paste patient identifiers and see them masked before the content is allowed to move any further.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-label">
+          <h2>Flow</h2>
+          <p>For risk reviewers, an understandable data path is often more persuasive than a broad claim.</p>
+        </div>
+        <div class="section-body">
+          <article class="panel">
+            <h3>End-to-end content flow on this site</h3>
+            <div class="flow" aria-label="End-to-end flow">
+              <div class="flow-step">
+                <b>Step 1</b>
+                <span>User pastes draft clinical or training content into the demo input.</span>
+              </div>
+              <div class="flow-step">
+                <b>Step 2</b>
+                <span>Local detector scans for names, DOB, MRN, SSN, phone, email, and address patterns.</span>
+              </div>
+              <div class="flow-step">
+                <b>Step 3</b>
+                <span>Identifiers are replaced with explicit redaction tokens in the browser.</span>
+              </div>
+              <div class="flow-step">
+                <b>Step 4</b>
+                <span>Only sanitized text is allowed into the governed wiki preview.</span>
+              </div>
+              <div class="flow-step">
+                <b>Step 5</b>
+                <span>Reviewer sees owner, audience, approval chain, and audit entries around the final page.</span>
+              </div>
+            </div>
+          </article>
+          <article class="panel">
+            <h3>Retention and segregation model</h3>
+            <ul>
+              <li>Operational knowledge content is managed separately from patient record systems.</li>
+              <li>Access is intended to be role-based and limited to organizational audiences defined by the customer.</li>
+              <li>Customer review should include retention policy, environment separation, and access evidence as part of vendor diligence.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-label">
+          <h2>Evidence</h2>
+          <p>Security reviews go faster when the site tells reviewers what evidence exists and what to ask for next.</p>
+        </div>
+        <div class="section-body">
+          <article class="panel">
+            <h3>Evidence package to provide in diligence</h3>
+            <ul>
+              <li>SOC 2 materials and control mapping available for review.</li>
+              <li>Written HIPAA posture and documented PHI boundary.</li>
+              <li>Architecture diagram covering ingress, redaction, storage, and access paths.</li>
+              <li>Access control model, audit logging examples, and ownership workflow.</li>
+              <li>Retention, deletion, and environment segregation documentation.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Reviewer shortcut</h3>
+            <p>
+              Open the <a href="wiki.html" style="color: var(--teal); font-weight: 700;">live PHI-redaction demo</a>, paste a realistic sample, and confirm the raw identifiers are masked before the governed wiki preview is allowed to render.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>Homeroom Health security overview for healthcare buyer review.</div>
+      <div>
+        <a href="index.html">Overview</a>
+        &nbsp;·&nbsp;
+        <a href="wiki.html">Live demo</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
