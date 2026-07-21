@@ -432,10 +432,13 @@
   </div>
   <h1>Your onboarding docs are a<br><em>mess</em>. Fix it in an afternoon.</h1>
   <p class="hero-sub">Paste in your Notion, Google Docs, or Slack threads. Homeroom turns them into a clean, searchable wiki your new hires can actually use — without you babysitting it.</p>
-  <form class="hero-form" onsubmit="handleSignup(event)">
+  <form id="form-hero" class="hero-form" onsubmit="handleSignup(event, 'form-hero', 'hero-success', 'free')">
     <input id="email-hero" class="hero-input" type="email" placeholder="you@company.com" required>
     <button type="submit" class="btn-primary">Get started free</button>
   </form>
+  <div id="hero-success" style="display:none; color:var(--green); font-weight:600; font-size:15px; margin-bottom:8px;">
+    ✓ You're on the list — we'll be in touch shortly!
+  </div>
   <p class="hero-fine"><strong>Free forever</strong> for solo founders &nbsp;·&nbsp; No credit card &nbsp;·&nbsp; Setup in 2 minutes</p>
 </section>
 
@@ -580,7 +583,7 @@
           <span class="plan-period">/ forever</span>
         </div>
         <div class="plan-desc">For solo founders just getting started.</div>
-        <button class="plan-cta plan-cta-outline" onclick="handleSignup(null, 'free')">Start for free</button>
+        <button class="plan-cta plan-cta-outline" onclick="handlePlanSignup('free')">Start for free</button>
         <ul class="plan-features">
           <li><svg class="feat-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> 1 team member</li>
           <li><svg class="feat-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Up to 5 wiki pages</li>
@@ -598,7 +601,7 @@
           <span class="plan-period">/ month</span>
         </div>
         <div class="plan-desc">For small teams that are actually hiring.</div>
-        <button class="plan-cta plan-cta-primary" onclick="handleSignup(null, 'starter')">Start 14-day free trial →</button>
+        <button class="plan-cta plan-cta-primary" onclick="handlePlanSignup('starter')">Start 14-day free trial →</button>
         <ul class="plan-features">
           <li><svg class="feat-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Up to 10 team members</li>
           <li><svg class="feat-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Unlimited wiki pages</li>
@@ -615,7 +618,7 @@
           <span class="plan-period">/ month</span>
         </div>
         <div class="plan-desc">For teams scaling fast and staying compliant.</div>
-        <button class="plan-cta plan-cta-outline" onclick="handleSignup(null, 'growth')">Start 14-day free trial</button>
+        <button class="plan-cta plan-cta-outline" onclick="handlePlanSignup('growth')">Start 14-day free trial</button>
         <ul class="plan-features">
           <li><svg class="feat-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Up to 50 team members</li>
           <li><svg class="feat-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Everything in Starter</li>
@@ -643,10 +646,13 @@
 <section class="final-cta">
   <h2>Stop losing hours to onboarding chaos.</h2>
   <p>Free to start. No credit card. No sales call. Just a working wiki.</p>
-  <form class="final-form" onsubmit="handleSignup(event)">
+  <form id="form-final" class="final-form" onsubmit="handleSignup(event, 'form-final', 'final-success', 'free')">
     <input class="final-input" type="email" placeholder="your@email.com" required>
     <button type="submit" class="btn-primary">Get started →</button>
   </form>
+  <div id="final-success" style="display:none; color:#6EE7B7; font-weight:600; font-size:15px; margin-bottom:12px;">
+    ✓ You're on the list — we'll be in touch shortly!
+  </div>
   <div class="final-fine">Free forever · Starter trial starts automatically · Cancel anytime</div>
 </section>
 
@@ -673,6 +679,10 @@
 </footer>
 
 <script>
+  // ── Replace with your Formspree form ID after signing up at formspree.io ──
+  const FORMSPREE_ID = 'YOUR_FORM_ID';
+  const FORMSPREE_URL = `https://formspree.io/f/${FORMSPREE_ID}`;
+
   function setToggle(btn, mode) {
     document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -680,12 +690,47 @@
     document.getElementById('growth-price').textContent = mode === 'annual' ? '$55' : '$79';
   }
 
-  function handleSignup(e, plan) {
-    if (e) e.preventDefault();
-    const input = e ? e.target.querySelector('input') : null;
-    const email = input ? input.value : '';
-    const label = plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'growth' ? 'Growth' : 'Free';
-    alert((email ? `Signing up ${email} for ` : `Starting `) + label + ' plan.\n\n(Connect your signup flow here.)');
+  async function handleSignup(e, formId, successId, plan) {
+    e.preventDefault();
+    const form = document.getElementById(formId);
+    const successEl = document.getElementById(successId);
+    const btn = form.querySelector('button[type="submit"]');
+    const email = form.querySelector('input[type="email"]').value;
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      const res = await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, plan: plan || 'free', _subject: `New Homeroom signup: ${email}` })
+      });
+
+      if (res.ok) {
+        form.style.display = 'none';
+        successEl.style.display = 'block';
+      } else {
+        throw new Error('Server error');
+      }
+    } catch {
+      btn.disabled = false;
+      btn.textContent = btn.dataset.label || 'Get started free';
+      alert('Something went wrong — please email us at hello@homeroom.so');
+    }
+  }
+
+  function handlePlanSignup(plan) {
+    const email = prompt(`Enter your email to start the ${plan} plan:`);
+    if (!email) return;
+    fetch(FORMSPREE_URL, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, plan, _subject: `New Homeroom signup: ${email} — ${plan}` })
+    }).then(r => {
+      if (r.ok) alert(`✓ You're signed up for ${plan}! Check your inbox shortly.`);
+      else alert('Something went wrong — please email hello@homeroom.so');
+    }).catch(() => alert('Something went wrong — please email hello@homeroom.so'));
   }
 </script>
 
